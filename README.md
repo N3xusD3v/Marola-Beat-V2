@@ -27,16 +27,16 @@ tipagem forte de ponta a ponta, CI/CD e deploy em produção via [Coolify](https
 ## 🛠️ Comandos disponíveis
 
 | Comando       | Descrição                                    |
-| ------------- | --------------------------------------------- |
-| `/play`       | Toca uma música por busca ou URL              |
-| `/skip`       | Pula a faixa atual                            |
-| `/stop`       | Para a reprodução e limpa a fila              |
-| `/queue`      | Mostra a fila de reprodução                   |
-| `/pause`      | Pausa a música atual                          |
-| `/resume`     | Retoma a música pausada                       |
-| `/nowplaying` | Mostra a faixa tocando no momento             |
-| `/shuffle`    | Embaralha as músicas da fila                  |
-| `/loop`       | Define o modo de repetição (off/track/queue)  |
+| ------------- | -------------------------------------------- |
+| `/play`       | Toca uma música por busca ou URL             |
+| `/skip`       | Pula a faixa atual                           |
+| `/stop`       | Para a reprodução e limpa a fila             |
+| `/queue`      | Mostra a fila de reprodução                  |
+| `/pause`      | Pausa a música atual                         |
+| `/resume`     | Retoma a música pausada                      |
+| `/nowplaying` | Mostra a faixa tocando no momento            |
+| `/shuffle`    | Embaralha as músicas da fila                 |
+| `/loop`       | Define o modo de repetição (off/track/queue) |
 
 ## 🚀 Começando
 
@@ -66,15 +66,15 @@ npm run dev
 
 ## 📦 Scripts
 
-| Script                | O que faz                                            |
-| ---------------------- | ------------------------------------------------------ |
-| `npm run dev`           | Roda o bot com reload automático (tsx watch)            |
-| `npm run register`      | Registra/atualiza os comandos de barra no Discord        |
-| `npm run build`         | Compila TypeScript para `dist/`                         |
-| `npm start`             | Roda a build de produção (`dist/index.js`)               |
-| `npm run typecheck`     | Verifica tipos sem gerar arquivos                        |
-| `npm run lint`          | Roda o ESLint                                            |
-| `npm run format`        | Formata o código com Prettier                            |
+| Script              | O que faz                                         |
+| ------------------- | ------------------------------------------------- |
+| `npm run dev`       | Roda o bot com reload automático (tsx watch)      |
+| `npm run register`  | Registra/atualiza os comandos de barra no Discord |
+| `npm run build`     | Compila TypeScript para `dist/`                   |
+| `npm start`         | Roda a build de produção (`dist/index.js`)        |
+| `npm run typecheck` | Verifica tipos sem gerar arquivos                 |
+| `npm run lint`      | Roda o ESLint                                     |
+| `npm run format`    | Formata o código com Prettier                     |
 
 ## 🏗️ Estrutura do projeto
 

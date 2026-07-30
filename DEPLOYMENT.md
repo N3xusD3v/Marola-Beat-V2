@@ -34,9 +34,9 @@ imagem num registry privado. O workflow [`deploy.yml`](.github/workflows/deploy.
 pronto; para ativá-lo:
 
 1. No Coolify, crie o recurso como **Dockerfile** (não Compose) e gere um **Deploy Webhook** em
-   *Settings → Webhooks*.
-2. Gere um **API Token** com permissão de deploy em *Keys & Tokens*.
-3. No GitHub, em *Settings → Secrets and variables → Actions*, adicione:
+   _Settings → Webhooks_.
+2. Gere um **API Token** com permissão de deploy em _Keys & Tokens_.
+3. No GitHub, em _Settings → Secrets and variables → Actions_, adicione:
    - `COOLIFY_WEBHOOK` — a URL do webhook de deploy
    - `COOLIFY_TOKEN` — o token de API
 4. Todo push em `main` builda a imagem, publica no GHCR e chama o webhook do Coolify para

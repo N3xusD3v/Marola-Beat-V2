@@ -24,7 +24,7 @@ Copy this into your response and check items off as you go:
 ## Steps
 
 1. Confirm the target branch is `main`, clean, and CI is green (`gh run list --branch main --limit
-   1`).
+1`).
 2. Bump `"version"` in `package.json` (no separate lockfile version bump needed).
 3. Add a new `## [x.y.z] - YYYY-MM-DD` section at the top of `CHANGELOG.md`, under `Added`/
    `Changed`/`Fixed` as appropriate — see existing entries for the format.
