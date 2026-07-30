@@ -1,0 +1,39 @@
+{
+  "name": "marola-beat",
+  "version": "2.0.0",
+  "type": "module",
+  "description": "Bot de música open source para Discord, construído com discord.js, discord-player e TypeScript.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "register": "tsx src/register-commands.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node --enable-source-maps dist/index.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@discord-player/extractor": "^7.2.0",
+    "discord-player": "^7.2.0",
+    "discord-player-youtubei": "^2.0.0",
+    "discord.js": "^14.27.0",
+    "dotenv": "^17.4.2",
+    "youtube-dl-exec": "^3.1.9"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.1.2",
+    "eslint": "^10.8.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.6",
+    "tsx": "^4.23.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.65.0"
+  }
+}

@@ -1,0 +1,14 @@
+# Compose file usado pelo Coolify para build/deploy do bot.
+# É um worker sem porta HTTP: nenhuma porta é exposta e nenhum domínio deve
+# ser atribuído ao serviço no Coolify.
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DISCORD_TOKEN: ${DISCORD_TOKEN}
+      DISCORD_APP_ID: ${DISCORD_APP_ID}
+      GUILD_ID: ${GUILD_ID:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}

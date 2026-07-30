@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Dúvidas gerais
+    url: https://github.com/N3xusD3v/Marola-Beat-V2/discussions
+    about: Para dúvidas de uso/configuração, prefira as Discussions em vez de uma issue.

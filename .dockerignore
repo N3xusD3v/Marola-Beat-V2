@@ -1,0 +1,14 @@
+node_modules
+dist
+.git
+.github
+.env
+.env.*
+!.env.example
+*.log
+.vscode
+.claude
+README.md
+CONTRIBUTING.md
+CHANGELOG.md
+docs

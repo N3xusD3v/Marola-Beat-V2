@@ -1,0 +1,24 @@
+name: ✨ Sugerir funcionalidade
+description: Sugira um comando ou melhoria nova
+labels: ['enhancement', 'triage']
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Que problema isso resolve?
+      description: Ex. "Não tem como controlar o volume pelo Discord."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solução proposta
+      description: Como você imagina que isso funcionaria (ex. novo comando `/volume <0-100>`)?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
