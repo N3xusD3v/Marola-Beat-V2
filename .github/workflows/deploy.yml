@@ -45,7 +45,12 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Acionar deploy no Coolify
-        if: ${{ secrets.COOLIFY_WEBHOOK != '' }}
+        env:
+          COOLIFY_WEBHOOK: ${{ secrets.COOLIFY_WEBHOOK }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
         run: |
-          curl --fail --request GET "${{ secrets.COOLIFY_WEBHOOK }}" \
-            --header "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
+          if [ -z "$COOLIFY_WEBHOOK" ]; then
+            echo "COOLIFY_WEBHOOK não configurado (Settings > Secrets and variables > Actions) — pulando."
+            exit 0
+          fi
+          curl --fail --request GET "$COOLIFY_WEBHOOK" --header "Authorization: Bearer $COOLIFY_TOKEN"
