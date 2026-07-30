@@ -1,6 +1,7 @@
-# Compose file usado pelo Coolify para build/deploy do bot.
-# É um worker sem porta HTTP: nenhuma porta é exposta e nenhum domínio deve
-# ser atribuído ao serviço no Coolify.
+# Compose file usado pelo Coolify para build/deploy do bot + painel web.
+# Não defina `ports:` aqui — o domínio é atribuído pela UI do Coolify
+# apontando para a porta interna 3000 (ex: https://beat.n3xus.dev:3000).
+# Veja DEPLOYMENT.md para o passo a passo completo.
 services:
   bot:
     build:
@@ -10,5 +11,10 @@ services:
     environment:
       DISCORD_TOKEN: ${DISCORD_TOKEN}
       DISCORD_APP_ID: ${DISCORD_APP_ID}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET}
       GUILD_ID: ${GUILD_ID:-}
+      WEB_GUILD_ID: ${WEB_GUILD_ID}
+      PUBLIC_URL: ${PUBLIC_URL}
+      SESSION_SECRET: ${SESSION_SECRET}
+      PORT: ${PORT:-3000}
       LOG_LEVEL: ${LOG_LEVEL:-info}

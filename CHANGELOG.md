@@ -3,6 +3,23 @@
 Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [2.1.0] - 2026-07-30
+
+### Adicionado
+
+- Painel web (`src/web/`) para gerenciar a fila de reprodução: login via Discord OAuth2, listar
+  fila, adicionar música e reordenar arrastando (só troca com a posição vizinha).
+- Acesso ao painel restrito a quem está no momento no mesmo canal de voz que o bot
+  (`requireVoiceMember`, checado a cada requisição via `guild.voiceStates.cache`).
+- Frontend estático em `public/` (HTML/CSS/JS puro, sem build step).
+
+### Alterado
+
+- **Breaking (config):** novas variáveis de ambiente obrigatórias — `DISCORD_CLIENT_SECRET`,
+  `WEB_GUILD_ID`, `PUBLIC_URL`, `SESSION_SECRET`. Veja `.env.example` e [DEPLOYMENT.md](DEPLOYMENT.md).
+- O container agora expõe a porta `3000` (painel web); o deploy no Coolify precisa de um domínio
+  atribuído (antes era um worker sem porta nenhuma).
+
 ## [2.0.0] - 2026-07-30
 
 ### Alterado

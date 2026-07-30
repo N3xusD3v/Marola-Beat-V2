@@ -1,7 +1,8 @@
 # Marola Beat V2
 
 Bot de música para Discord (TypeScript, ESM, Node 22+). Baseado em `discord.js` v14 e
-`discord-player` v7. Roda em produção como container Docker no Coolify (worker sem porta HTTP).
+`discord-player` v7, com um painel web (Express) para gerenciar a fila via login Discord OAuth2.
+Roda em produção como container Docker no Coolify, servindo HTTP na porta 3000.
 
 ## Comandos
 
@@ -31,6 +32,16 @@ três em todo PR e falha o merge se algum quebrar.
   `QueueMetadata` (tipo do `metadata` da fila — sempre use os genéricos `nodes.create<QueueMetadata>`
   / `nodes.get<QueueMetadata>` para evitar `any` implícito, já que o `discord-player` não é
   genérico por padrão).
+- `src/web/` — painel web: `server.ts` monta o app Express (sessão, estáticos de `public/`),
+  `discord-oauth.ts` fala com a API OAuth2 do Discord, `auth.ts` são as rotas de login/callback/
+  logout, `middleware.ts` (`requireVoiceMember`) exige sessão válida **e** estar no momento no
+  mesmo canal de voz que o bot (via `guild.voiceStates.cache`, não a API REST — é mais rápido e
+  não precisa de escopo `guilds`/`guilds.members.read`), `queue-routes.ts` expõe
+  `GET/POST /api/queue*`. Reordenar só troca posições adjacentes: use `queue.node.swap(a, b)`
+  (não `queue.tracks.swap`, que não existe — `queue.tracks` é um `Queue<Track>` genérico sem esse
+  método, ver `@discord-player/utils`).
+- `public/` — frontend do painel, JS puro sem build step (fora do projeto TypeScript,
+  ignorado pelo ESLint/tsconfig de propósito). Se adicionar algo aqui, não assuma tipos do `src/`.
 
 ## Convenções
 
@@ -54,8 +65,13 @@ três em todo PR e falha o merge se algum quebrar.
 ## Deploy
 
 Veja [DEPLOYMENT.md](DEPLOYMENT.md). Resumo: Coolify builda o `docker-compose.yml`/`Dockerfile`
-direto do GitHub a cada push em `main`; o serviço não expõe porta nem domínio. Depois de mudar
-comandos, rode `npm run register` manualmente (não faz parte do runtime do container).
+direto do GitHub a cada push em `main`; o domínio é atribuído pela UI do Coolify apontando pra
+porta 3000 (`https://beat.n3xus.dev:3000`) — não adicione `ports:` ao compose para isso. Depois de
+mudar comandos, rode `npm run register` manualmente (não faz parte do runtime do container).
+
+**Nunca digite tokens/secrets (bot token, `DISCORD_CLIENT_SECRET`, etc.) em campos de UI por
+conta própria** — nem no Coolify, nem no Discord Developer Portal. Peça para o usuário colar/digitar
+essas credenciais pessoalmente.
 
 ## Skills do projeto
 

@@ -1,31 +1,55 @@
 # Deploy no Coolify
 
-O bot é um **worker sem porta HTTP** — ele só mantém uma conexão WebSocket com o Discord.
-Isso muda algumas coisas em relação a uma aplicação web comum: **não** exponha porta e **não**
-atribua domínio ao serviço no Coolify.
+O bot mantém uma conexão WebSocket com o Discord **e** serve um painel web (fila de
+reprodução, login com Discord) na porta interna `3000`. O painel só é acessível para quem
+está no momento no mesmo canal de voz que o bot — veja [README.md](README.md#painel-web).
+
+## Domínio e OAuth2 (fazer antes do deploy)
+
+O painel usa login OAuth2 do Discord, então a aplicação do bot precisa saber a URL pública
+antes de funcionar:
+
+1. No [Discord Developer Portal](https://discord.com/developers/applications), abra a
+   aplicação do bot → **OAuth2 → General**.
+2. Em **Redirects**, adicione: `https://beat.n3xus.dev/auth/discord/callback`
+3. Copie o **Client Secret** (gere um novo se necessário) — vai virar a variável
+   `DISCORD_CLIENT_SECRET`. Trate como senha: nunca commite no repositório.
 
 ## Opção recomendada: integração nativa do Coolify com o GitHub
 
 Mais simples de manter — o próprio Coolify clona o repositório e builda a imagem a partir do
 `Dockerfile`/`docker-compose.yml` a cada push.
 
-1. No Coolify: **New Resource → Application → Docker Compose** (ou **Dockerfile**, ambos funcionam
-   já que o repo tem os dois).
-2. Conecte a **GitHub App** do Coolify ao repositório `N3xusD3v/Marola-Beat-V2` (repo privado — a
-   GitHub App do Coolify precisa de acesso concedido pela organização).
+1. No Coolify: **New Resource → Application → Docker Compose**.
+2. Conecte a **GitHub App** do Coolify ao repositório `N3xusD3v/Marola-Beat-V2` (repo privado —
+   a GitHub App do Coolify precisa de acesso concedido pela organização).
 3. Build pack: **Docker Compose**, arquivo `docker-compose.yml`, branch `main`.
-4. Em **Environment Variables**, adicione (marque como "Build Variable" = não, são só runtime):
+4. Em **Environment Variables**, adicione:
    - `DISCORD_TOKEN`
    - `DISCORD_APP_ID`
-   - `GUILD_ID` (deixe vazio em produção para comandos globais)
+   - `DISCORD_CLIENT_SECRET`
+   - `GUILD_ID` (deixe vazio em produção para comandos globais — não confundir com `WEB_GUILD_ID`)
+   - `WEB_GUILD_ID` (ID do servidor cuja fila o painel gerencia)
+   - `PUBLIC_URL` = `https://beat.n3xus.dev`
+   - `SESSION_SECRET` (string aleatória — `openssl rand -hex 32`)
    - `LOG_LEVEL` (opcional, padrão `info`)
-5. **Não** configure porta nem domínio — o serviço não expõe HTTP.
-6. Ative **"Auto Deploy"** (deploy automático a cada push na branch `main`), disponível nas
-   configurações do recurso.
+5. Em **Domains**, atribua ao serviço `bot`: `https://beat.n3xus.dev:3000` — o `:3000` diz ao
+   Coolify para rotear para a porta interna do container; **não** adicione `ports:` no
+   `docker-compose.yml` para isso (veja a nota no próprio arquivo).
+6. Ative **"Auto Deploy"** (deploy automático a cada push na branch `main`).
 7. Clique em **Deploy**. Acompanhe os logs de build/runtime pelo próprio Coolify.
 
 Depois do primeiro deploy, rode o registro de comandos uma vez (veja "Registrando comandos de
 barra" abaixo).
+
+## DNS no Cloudflare
+
+1. Crie um registro **A** (ou CNAME) para `beat.n3xus.dev` apontando para o IP do servidor onde
+   o Coolify roda.
+2. Deixe como **"DNS only"** (nuvem cinza, sem proxy) — com o proxy laranja ativado, o desafio
+   HTTP-01 do Let's Encrypt que o Coolify/Traefik usa para emitir o certificado falha. Depois que
+   o certificado estiver ativo, dá pra reativar o proxy usando desafio DNS-01, mas isso exige
+   configuração extra no Coolify — não é o padrão.
 
 ## Opção alternativa: GitHub Actions + Webhook
 
@@ -60,10 +84,13 @@ Rode `npm run register` novamente sempre que adicionar, remover ou alterar um co
 
 ## Checklist de produção
 
-- [ ] `DISCORD_TOKEN` e `DISCORD_APP_ID` configurados como variáveis de ambiente no Coolify (nunca
-      commitados no repositório)
+- [ ] `DISCORD_TOKEN`, `DISCORD_APP_ID`, `DISCORD_CLIENT_SECRET`, `WEB_GUILD_ID`, `PUBLIC_URL` e
+      `SESSION_SECRET` configurados como variáveis de ambiente no Coolify (nunca commitados no
+      repositório)
 - [ ] `GUILD_ID` vazio em produção (comandos globais) ou definido para um servidor de staging
-- [ ] Nenhuma porta/domínio atribuído ao serviço
+- [ ] Redirect URI `https://beat.n3xus.dev/auth/discord/callback` cadastrado no Developer Portal
+- [ ] Domínio `https://beat.n3xus.dev:3000` atribuído ao serviço no Coolify (sem `ports:` no compose)
+- [ ] DNS de `beat.n3xus.dev` no Cloudflare em modo "DNS only" até o certificado ser emitido
 - [ ] `npm run register` executado após qualquer mudança nos comandos
 - [ ] Restart policy `unless-stopped` (já definida no `docker-compose.yml`)
 - [ ] Logs monitorados pelo painel do Coolify após o primeiro deploy

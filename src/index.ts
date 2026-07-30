@@ -4,6 +4,7 @@ import { env } from './config/env.js';
 import { commands } from './commands/index.js';
 import { createPlayer } from './lib/player.js';
 import { logger } from './lib/logger.js';
+import { startServer } from './web/server.js';
 import type { BotClient } from './types/client.js';
 
 async function main(): Promise<void> {
@@ -21,6 +22,7 @@ async function main(): Promise<void> {
 
   client.once('clientReady', () => {
     logger.info(`Conectado como ${client.user?.tag}`);
+    startServer(client);
   });
 
   async function handleInteraction(interaction: Interaction): Promise<void> {

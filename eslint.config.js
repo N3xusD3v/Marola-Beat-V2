@@ -3,7 +3,8 @@ import tseslint from 'typescript-eslint';
 import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'node_modules/**'] },
+  // public/ é JS de navegador servido como está, fora do projeto TypeScript.
+  { ignores: ['dist/**', 'node_modules/**', 'public/**'] },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   {

@@ -33,10 +33,12 @@ RUN apk add --no-cache ffmpeg tini \
 WORKDIR /app
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
+COPY public ./public
 COPY package.json ./
 
 USER bot
 ENV NODE_ENV=production
+EXPOSE 3000
 
 ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["node", "--enable-source-maps", "dist/index.js"]

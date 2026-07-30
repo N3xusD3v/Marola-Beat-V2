@@ -22,7 +22,22 @@ tipagem forte de ponta a ponta, CI/CD e deploy em produção via [Coolify](https
 - 📝 Comandos de barra (`/`) para todas as ações
 - 🔁 Loop, shuffle, fila, pause, resume, now playing
 - 🗑️ Sai automaticamente do canal quando fica vazio ou a fila termina
+- 🌐 Painel web para gerenciar a fila (veja abaixo)
 - 🧩 Fácil de estender com novos comandos (veja [.claude/skills/adding-slash-commands](.claude/skills/adding-slash-commands/SKILL.md))
+
+## 🌐 Painel web
+
+Além dos comandos de barra, o bot serve um painel web (`PUBLIC_URL`, ex.
+`https://beat.n3xus.dev`) para gerenciar a fila do canal de voz:
+
+- **Login com Discord (OAuth2)** — sem contas ou senhas próprias.
+- **Acesso restrito**: só quem está **naquele momento** no mesmo canal de voz que o bot pode ver
+  ou mexer na fila. Sair do canal revoga o acesso na próxima ação.
+- **Adicionar música** por nome ou link.
+- **Reordenar a fila arrastando** — só é possível trocar uma música de posição com a vizinha
+  imediata (arrastar de baixo pra cima ou de cima pra baixo), não pular posições.
+
+Configuração e variáveis de ambiente necessárias em [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## 🛠️ Comandos disponíveis
 
@@ -50,7 +65,8 @@ cd Marola-Beat-V2
 
 # 2. Configure as variáveis de ambiente
 cp .env.example .env
-# Preencha DISCORD_TOKEN, DISCORD_APP_ID e GUILD_ID (dev) no .env
+# Preencha DISCORD_TOKEN, DISCORD_APP_ID, DISCORD_CLIENT_SECRET, WEB_GUILD_ID,
+# PUBLIC_URL (ex: http://localhost:3000) e SESSION_SECRET no .env
 
 # 3. Instale as dependências
 # (se o `npm install` reclamar de não achar Python, rode com
@@ -84,8 +100,10 @@ src/
 ├── config/       # Carregamento e validação de variáveis de ambiente
 ├── lib/          # Player, logger, embeds, helpers de fila
 ├── types/        # Tipos compartilhados (Command, BotClient, QueueMetadata)
+├── web/          # Painel web: servidor Express, OAuth2, rotas da API da fila
 ├── index.ts      # Bootstrap do bot
 └── register-commands.ts
+public/           # Frontend estático do painel web (HTML/CSS/JS puro)
 ```
 
 ## 🐳 Deploy em produção (Coolify)
