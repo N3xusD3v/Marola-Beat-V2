@@ -136,6 +136,35 @@ async function skipTrack() {
   await loadQueue();
 }
 
+async function previousTrack() {
+  await api('/api/queue/previous', { method: 'POST' });
+  await loadQueue();
+}
+
+async function clearQueue() {
+  await api('/api/queue/clear', { method: 'POST' });
+  await loadQueue();
+}
+
+async function leaveChannel() {
+  await api('/api/queue/leave', { method: 'POST' });
+  await loadQueue();
+}
+
+async function seekTo(positionMs) {
+  localPositionMs = positionMs;
+  await api('/api/queue/seek', { method: 'POST', body: JSON.stringify({ positionMs }) });
+  await loadQueue();
+}
+
+let volumeDebounce = null;
+function setVolume(volume) {
+  clearTimeout(volumeDebounce);
+  volumeDebounce = setTimeout(() => {
+    void api('/api/queue/volume', { method: 'POST', body: JSON.stringify({ volume }) });
+  }, 300);
+}
+
 function renderPlayer(data) {
   const card = el('section', 'card now-playing');
   card.appendChild(el('h2', null, 'Tocando agora'));
@@ -166,6 +195,12 @@ function renderPlayer(data) {
     const pct = track.durationMs > 0 ? Math.min(100, (localPositionMs / track.durationMs) * 100) : 0;
     bar.style.width = `${pct}%`;
     progress.appendChild(bar);
+    progress.title = 'Clique para pular para essa posição';
+    progress.addEventListener('click', (event) => {
+      const rect = progress.getBoundingClientRect();
+      const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+      void seekTo(Math.round(ratio * track.durationMs));
+    });
     info.appendChild(progress);
 
     const times = el('div', 'progress-times');
@@ -180,6 +215,13 @@ function renderPlayer(data) {
   card.appendChild(body);
 
   const controls = el('div', 'player-controls');
+
+  const prevBtn = el('button', 'btn btn-secondary', '⏮ Anterior');
+  prevBtn.type = 'button';
+  prevBtn.disabled = !data.hasPrevious;
+  prevBtn.addEventListener('click', () => void previousTrack());
+  controls.appendChild(prevBtn);
+
   const pauseBtn = el('button', 'btn btn-primary', data.paused ? '▶ Retomar' : '⏸ Pausar');
   pauseBtn.type = 'button';
   pauseBtn.addEventListener('click', () => void togglePause());
@@ -190,7 +232,30 @@ function renderPlayer(data) {
   skipBtn.addEventListener('click', () => void skipTrack());
   controls.appendChild(skipBtn);
 
+  const leaveBtn = el('button', 'btn btn-link', '👋 Sair do canal');
+  leaveBtn.type = 'button';
+  leaveBtn.addEventListener('click', () => void leaveChannel());
+  controls.appendChild(leaveBtn);
+
   card.appendChild(controls);
+
+  const volumeRow = el('div', 'volume-row');
+  volumeRow.appendChild(el('span', 'volume-label', '🔊'));
+  const volumeInput = document.createElement('input');
+  volumeInput.type = 'range';
+  volumeInput.min = '0';
+  volumeInput.max = '200';
+  volumeInput.value = String(data.volume ?? 100);
+  volumeInput.className = 'volume-slider';
+  const volumeValue = el('span', 'volume-label', `${data.volume ?? 100}%`);
+  volumeInput.addEventListener('input', () => {
+    volumeValue.textContent = `${volumeInput.value}%`;
+    setVolume(Number(volumeInput.value));
+  });
+  volumeRow.appendChild(volumeInput);
+  volumeRow.appendChild(volumeValue);
+  card.appendChild(volumeRow);
+
   return card;
 }
 
@@ -249,7 +314,15 @@ function renderQueue(data) {
   app.appendChild(addSection);
 
   const queueSection = el('section', 'card queue-list');
-  queueSection.appendChild(el('h2', null, `Fila (${data.tracks.length})`));
+  const queueHeader = el('div', 'queue-header');
+  queueHeader.appendChild(el('h2', null, `Fila (${data.tracks.length})`));
+  if (data.tracks.length > 0) {
+    const clearBtn = el('button', 'btn btn-link', 'Limpar fila');
+    clearBtn.type = 'button';
+    clearBtn.addEventListener('click', () => void clearQueue());
+    queueHeader.appendChild(clearBtn);
+  }
+  queueSection.appendChild(queueHeader);
   if (data.tracks.length === 0) {
     queueSection.appendChild(el('p', 'empty', 'Fila vazia — adicione uma música acima.'));
   } else {

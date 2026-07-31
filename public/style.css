@@ -197,6 +197,7 @@ main {
   display: flex;
   gap: 0.5rem;
   margin-top: 1rem;
+  flex-wrap: wrap;
 }
 
 .progress {
@@ -205,6 +206,36 @@ main {
   border-radius: 999px;
   background: #2a2a2a;
   overflow: hidden;
+  cursor: pointer;
+}
+
+.volume-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+
+.volume-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  min-width: 2.4rem;
+}
+
+.volume-slider {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+.queue-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.queue-header h2 {
+  margin: 0;
 }
 
 .progress-bar {

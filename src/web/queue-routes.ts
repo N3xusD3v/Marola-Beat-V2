@@ -60,6 +60,8 @@ export function createQueueRouter(client: BotClient) {
       tracks: player ? player.queue.tracks.map(toDTO) : [],
       playing: player?.playing ?? false,
       paused: player?.paused ?? false,
+      volume: player?.volume ?? 100,
+      hasPrevious: (player?.queue.previous.length ?? 0) > 0,
     });
   });
 
@@ -195,6 +197,81 @@ export function createQueueRouter(client: BotClient) {
         return;
       }
       await player.skip();
+      res.status(204).end();
+    })();
+  });
+
+  router.post('/previous', (req, res) => {
+    void (async () => {
+      const player = client.lavalink.getPlayer(env.webGuildId);
+      if (!player || player.queue.previous.length === 0) {
+        res.status(409).json({ error: 'no_previous' });
+        return;
+      }
+      const previous = await player.queue.shiftPrevious();
+      await player.play({ clientTrack: previous });
+      res.status(204).end();
+    })();
+  });
+
+  router.post('/clear', (req, res) => {
+    void (async () => {
+      const player = client.lavalink.getPlayer(env.webGuildId);
+      if (!player || player.queue.tracks.length === 0) {
+        res.status(409).json({ error: 'queue_empty' });
+        return;
+      }
+      await player.queue.splice(0, player.queue.tracks.length);
+      res.status(204).end();
+    })();
+  });
+
+  router.post('/volume', (req, res) => {
+    void (async () => {
+      const volume = numberField(req.body, 'volume');
+      if (volume === undefined || !Number.isInteger(volume) || volume < 0 || volume > 200) {
+        res.status(400).json({ error: 'invalid_volume' });
+        return;
+      }
+      const player = client.lavalink.getPlayer(env.webGuildId);
+      if (!player) {
+        res.status(409).json({ error: 'nothing_playing' });
+        return;
+      }
+      await player.setVolume(volume);
+      res.status(204).end();
+    })();
+  });
+
+  router.post('/seek', (req, res) => {
+    void (async () => {
+      const positionMs = numberField(req.body, 'positionMs');
+      const player = client.lavalink.getPlayer(env.webGuildId);
+      if (!player || !player.queue.current) {
+        res.status(409).json({ error: 'nothing_playing' });
+        return;
+      }
+      if (player.queue.current.info.isStream) {
+        res.status(409).json({ error: 'not_seekable' });
+        return;
+      }
+      if (positionMs === undefined || positionMs < 0) {
+        res.status(400).json({ error: 'invalid_position' });
+        return;
+      }
+      await player.seek(positionMs);
+      res.status(204).end();
+    })();
+  });
+
+  router.post('/leave', (req, res) => {
+    void (async () => {
+      const player = client.lavalink.getPlayer(env.webGuildId);
+      if (!player) {
+        res.status(409).json({ error: 'not_connected' });
+        return;
+      }
+      await player.destroy();
       res.status(204).end();
     })();
   });
