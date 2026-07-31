@@ -50,5 +50,18 @@ export async function createPlayer(client: Client): Promise<Player> {
     logger.debug(`[queue ${queue.guild?.id}] ${message}`);
   });
 
+  // Log de baixo nível da VoiceConnection (discord-voip): mostra exatamente em qual
+  // etapa do handshake (Signalling -> Connecting -> Ready) a conexão trava ou aborta.
+  player.events.on('connection', (queue) => {
+    const connection = queue.connection;
+    if (!connection) return;
+    connection.on('stateChange', (oldState: { status: string }, newState: { status: string }) => {
+      logger.debug(`[voice ${queue.guild?.id}] ${oldState.status} -> ${newState.status}`);
+    });
+    connection.on('debug', (message: string) => {
+      logger.debug(`[voice ${queue.guild?.id}] ${message}`);
+    });
+  });
+
   return player;
 }
