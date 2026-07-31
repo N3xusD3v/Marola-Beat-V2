@@ -276,7 +276,27 @@ async function loadQueue() {
   const data = await res.json();
   lastData = data;
   localPositionMs = data.positionMs ?? 0;
+
+  // renderQueue() reconstrói o DOM inteiro a cada poll, o que recriaria o <input> do
+  // formulário de adicionar música (perdendo o que o usuário estava digitando e o foco)
+  // a cada 4s. Preserva o valor/seleção/foco do input se ele estava em uso.
+  const activeInput = document.querySelector('.add-track input');
+  const preservedInput =
+    activeInput instanceof HTMLInputElement && document.activeElement === activeInput
+      ? { value: activeInput.value, selectionStart: activeInput.selectionStart, selectionEnd: activeInput.selectionEnd }
+      : null;
+
   renderQueue(data);
+
+  if (preservedInput) {
+    const newInput = document.querySelector('.add-track input');
+    if (newInput instanceof HTMLInputElement) {
+      newInput.value = preservedInput.value;
+      newInput.focus();
+      newInput.setSelectionRange(preservedInput.selectionStart, preservedInput.selectionEnd);
+    }
+  }
+
   startTicking();
 }
 
