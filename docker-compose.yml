@@ -35,6 +35,9 @@ services:
       # Nome exigido pelo relaxed-binding do Spring Boot para plugins.youtube.oauth.refreshToken —
       # esse valor NÃO pode vir de um placeholder `${...}` dentro de application.yml (ver nota lá).
       PLUGINS_YOUTUBE_OAUTH_REFRESHTOKEN: ${YOUTUBE_OAUTH_REFRESH_TOKEN}
+      # Meta de pausa do G1GC mais curta (padrão é 200ms) — pausas de GC mais curtas e frequentes
+      # em vez de mais longas e raras tendem a ser menos perceptíveis em áudio em tempo real.
+      _JAVA_OPTIONS: '-XX:MaxGCPauseMillis=100'
     volumes:
       # Sem volume nomeado para /opt/Lavalink/plugins de propósito: o container roda como usuário
       # não-root e um volume nomeado do Docker nasce com dono root, o que quebra o download do

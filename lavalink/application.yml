@@ -17,7 +17,15 @@ lavalink:
       vimeo: true
       http: false
       local: false
-    bufferDurationMs: 400
+    # bufferDurationMs mais alto que o padrão (400) dá mais margem contra picos de latência de
+    # agendamento da CPU — o host roda vários outros stacks Docker além deste, então contenção de
+    # CPU é esperada. opusEncodingQuality abaixo do máximo (10) reduz o custo de CPU por frame de
+    # áudio codificado (perda de qualidade imperceptível nesse nível, já que a saída do Discord é
+    # comprimida de qualquer forma). nonAllocatingFrameBuffer reduz alocações por frame, o que
+    # reduz pressão de GC — outra fonte comum de stutter em áudio em tempo real.
+    bufferDurationMs: 1000
+    opusEncodingQuality: 8
+    nonAllocatingFrameBuffer: true
     frameBufferDurationMs: 5000
     youtubePlaylistLoadLimit: 6
     playerUpdateInterval: 5
