@@ -10,15 +10,18 @@ This is the quick-reference version.
 
 ## Key facts
 
-- The bot is a **background worker**, not a web app: it only holds a WebSocket connection to
-  Discord. Never assign a domain or expose a port for this service in Coolify — it has no HTTP
-  server.
+- Two services in `docker-compose.yml`: `bot` (Discord WebSocket + web panel on port 3000 — the
+  only one that gets a Coolify domain) and `lavalink` (audio backend, internal-only, never expose a
+  port/domain for it). See [README.md](../../../README.md#painel-web) for the web panel and
+  [DEPLOYMENT.md](../../../DEPLOYMENT.md) for the full env var list.
 - Coolify builds directly from `Dockerfile`/`docker-compose.yml` in this repo via its GitHub App
   integration. Auto Deploy on push to `main` should be enabled on the resource.
-- Required runtime environment variables in Coolify: `DISCORD_TOKEN`, `DISCORD_APP_ID`. Optional:
-  `GUILD_ID` (leave empty in production for global commands), `LOG_LEVEL`.
-- `restart: unless-stopped` is already set in `docker-compose.yml` — the container comes back after
-  a crash or host reboot automatically.
+- Required runtime environment variables in Coolify: `DISCORD_TOKEN`, `DISCORD_APP_ID`,
+  `DISCORD_CLIENT_SECRET`, `WEB_GUILD_ID`, `PUBLIC_URL`, `SESSION_SECRET`, `LAVALINK_PASSWORD`
+  (shared secret between `bot` and `lavalink`, any random string — `openssl rand -hex 32`).
+  Optional: `GUILD_ID` (leave empty in production for global commands), `LOG_LEVEL`.
+- `restart: unless-stopped` is already set in `docker-compose.yml` — both containers come back
+  after a crash or host reboot automatically.
 
 ## Redeploying after a code change
 
@@ -40,7 +43,14 @@ bug.
 
 ## Troubleshooting
 
-- Bot container restarting in a loop → check Coolify logs first; usually a missing/invalid
-  `DISCORD_TOKEN` or `DISCORD_APP_ID`, surfaced clearly by `src/config/env.ts` at startup.
-- Voice/audio errors → confirm the `ffmpeg` package installed in the `Dockerfile` runtime stage
-  wasn't removed; `discord-player` needs it for transcoding regardless of the extractor used.
+- Bot container restarting in a loop → check Coolify logs first; usually a missing/invalid env var
+  (all required ones are validated and named clearly by `src/config/env.ts` at startup) — most
+  commonly a missing `LAVALINK_PASSWORD` after this env var was added.
+- Voice/audio errors → check the `lavalink` service's own logs in Coolify, not just `bot`'s. The
+  actual Discord voice UDP connection and audio transcoding happen there
+  (`lavalink/application.yml`), not in the bot process.
+- YouTube tracks failing to load specifically (other sources like SoundCloud still work) → the
+  bundled `youtube-plugin` in `lavalink/application.yml` occasionally needs updating to a newer
+  version when YouTube changes its client detection; check
+  [lavalink-devs/youtube-source releases](https://github.com/lavalink-devs/youtube-source/releases)
+  for a newer version and bump it in both the `plugins.youtube` dependency line.

@@ -1,6 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
 import type { BotClient } from '../types/client.js';
-import type { QueueMetadata } from '../types/queue.js';
 import { env } from '../config/env.js';
 
 export interface VoiceContext {
@@ -41,7 +40,7 @@ export function requireVoiceMember(client: BotClient) {
       return;
     }
 
-    const activeChannelId = client.player.nodes.get<QueueMetadata>(env.webGuildId)?.channel?.id;
+    const activeChannelId = client.lavalink.getPlayer(env.webGuildId)?.voiceChannelId;
     if (activeChannelId && activeChannelId !== voiceChannelId) {
       res.status(403).json({ error: 'wrong_voice_channel' });
       return;

@@ -1,8 +1,9 @@
 import { Client, Collection, GatewayIntentBits, Partials } from 'discord.js';
 import type { Interaction } from 'discord.js';
+import type { ChannelDeletePacket, VoicePacket, VoiceServer, VoiceState } from 'lavalink-client';
 import { env } from './config/env.js';
 import { commands } from './commands/index.js';
-import { createPlayer } from './lib/player.js';
+import { createLavalinkManager } from './lib/lavalink.js';
 import { logger } from './lib/logger.js';
 import { startServer } from './web/server.js';
 import type { BotClient } from './types/client.js';
@@ -18,10 +19,16 @@ async function main(): Promise<void> {
     client.commands.set(command.data.name, command);
   }
 
-  client.player = await createPlayer(client);
+  client.lavalink = createLavalinkManager(client);
+  // discord.js still emits the untyped legacy 'raw' event (WebSocketManager.js) with every
+  // gateway dispatch payload; lavalink-client needs it to forward voice state/server updates.
+  client.on('raw', (data: unknown) => {
+    void client.lavalink.sendRawData(data as VoicePacket | VoiceServer | VoiceState | ChannelDeletePacket);
+  });
 
   client.once('clientReady', () => {
     logger.info(`Conectado como ${client.user?.tag}`);
+    void client.lavalink.init({ id: client.user!.id, username: client.user!.username });
     startServer(client);
   });
 

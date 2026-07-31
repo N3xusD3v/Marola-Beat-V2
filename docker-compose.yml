@@ -1,6 +1,7 @@
-# Compose file usado pelo Coolify para build/deploy do bot + painel web.
-# Não defina `ports:` aqui — o domínio é atribuído pela UI do Coolify
-# apontando para a porta interna 3000 (ex: https://beat.n3xus.dev:3000).
+# Compose file usado pelo Coolify para build/deploy do bot + painel web + Lavalink.
+# Não defina `ports:` no serviço `bot` — o domínio é atribuído pela UI do Coolify
+# apontando para a porta interna 3000 (ex: https://beat.n3xus.dev:3000). O Lavalink não é
+# exposto ao host: só o serviço `bot` fala com ele, pela rede interna do compose.
 # Veja DEPLOYMENT.md para o passo a passo completo.
 services:
   bot:
@@ -8,6 +9,9 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
+    depends_on:
+      lavalink:
+        condition: service_healthy
     environment:
       DISCORD_TOKEN: ${DISCORD_TOKEN}
       DISCORD_APP_ID: ${DISCORD_APP_ID}
@@ -18,3 +22,34 @@ services:
       SESSION_SECRET: ${SESSION_SECRET}
       PORT: ${PORT:-3000}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      LAVALINK_HOST: lavalink
+      LAVALINK_PORT: 2333
+      LAVALINK_PASSWORD: ${LAVALINK_PASSWORD}
+
+  lavalink:
+    image: ghcr.io/lavalink-devs/lavalink:4.2.2
+    restart: unless-stopped
+    environment:
+      LAVALINK_SERVER_PASSWORD: ${LAVALINK_PASSWORD}
+      SERVER_PORT: 2333
+    volumes:
+      # Sem volume nomeado para /opt/Lavalink/plugins de propósito: o container roda como usuário
+      # não-root e um volume nomeado do Docker nasce com dono root, o que quebra o download do
+      # plugin de YouTube na inicialização com "Permission denied" (visto rodando localmente).
+      # O plugin (poucos MB) é baixado de novo a cada start — mais simples que lidar com uid/gid.
+      - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
+    expose:
+      - '2333'
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'wget',
+          '-qO-',
+          '--header=Authorization: ${LAVALINK_PASSWORD}',
+          'http://localhost:2333/version',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s

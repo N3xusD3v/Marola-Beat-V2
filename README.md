@@ -3,7 +3,8 @@
 # 🎵 Marola Beat V2
 
 **Bot de música open source para Discord**
-Construído com [discord.js](https://discord.js.org), [discord-player](https://discord-player.js.org) e TypeScript.
+Construído com [discord.js](https://discord.js.org), [Lavalink](https://lavalink.dev) (via
+[lavalink-client](https://github.com/tomato6966/lavalink-client)) e TypeScript.
 
 [![CI](https://github.com/N3xusD3v/Marola-Beat-V2/actions/workflows/ci.yml/badge.svg)](https://github.com/N3xusD3v/Marola-Beat-V2/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
@@ -18,7 +19,7 @@ tipagem forte de ponta a ponta, CI/CD e deploy em produção via [Coolify](https
 
 ## ✨ Funcionalidades
 
-- 🎶 Toca música do YouTube, SoundCloud e outras fontes suportadas pelo `discord-player`
+- 🎶 Toca música do YouTube, SoundCloud, Bandcamp, Twitch e Vimeo via Lavalink
 - 📝 Comandos de barra (`/`) para todas as ações
 - 🔁 Loop, shuffle, fila, pause, resume, now playing
 - 🗑️ Sai automaticamente do canal quando fica vazio ou a fila termina
@@ -66,17 +67,18 @@ cd Marola-Beat-V2
 # 2. Configure as variáveis de ambiente
 cp .env.example .env
 # Preencha DISCORD_TOKEN, DISCORD_APP_ID, DISCORD_CLIENT_SECRET, WEB_GUILD_ID,
-# PUBLIC_URL (ex: http://localhost:3000) e SESSION_SECRET no .env
+# PUBLIC_URL (ex: http://localhost:3000), SESSION_SECRET e LAVALINK_PASSWORD no .env
 
 # 3. Instale as dependências
-# (se o `npm install` reclamar de não achar Python, rode com
-#  YOUTUBE_DL_SKIP_PYTHON_CHECK=1 npm install — veja CLAUDE.md)
 npm install
 
-# 4. Registre os comandos de barra
+# 4. Suba o node Lavalink (áudio + conexão de voz) localmente
+docker compose up lavalink
+
+# 5. Registre os comandos de barra
 npm run register
 
-# 5. Rode em modo desenvolvimento
+# 6. Rode em modo desenvolvimento
 npm run dev
 ```
 
@@ -98,18 +100,19 @@ npm run dev
 src/
 ├── commands/     # Um arquivo por comando de barra
 ├── config/       # Carregamento e validação de variáveis de ambiente
-├── lib/          # Player, logger, embeds, helpers de fila
-├── types/        # Tipos compartilhados (Command, BotClient, QueueMetadata)
+├── lib/          # LavalinkManager, logger, embeds, helpers de fila
+├── types/        # Tipos compartilhados (Command, BotClient)
 ├── web/          # Painel web: servidor Express, OAuth2, rotas da API da fila
 ├── index.ts      # Bootstrap do bot
 └── register-commands.ts
 public/           # Frontend estático do painel web (HTML/CSS/JS puro)
+lavalink/         # application.yml do node Lavalink (áudio + conexão de voz)
 ```
 
 ## 🐳 Deploy em produção (Coolify)
 
-O projeto já vem com `Dockerfile` e `docker-compose.yml` prontos para deploy como
-**Application (Docker Compose)** no Coolify — veja o guia completo em
+O projeto já vem com `Dockerfile` e `docker-compose.yml` (serviços `bot` + `lavalink`) prontos
+para deploy como **Application (Docker Compose)** no Coolify — veja o guia completo em
 [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## 🤝 Contribuindo
@@ -119,7 +122,8 @@ commits e Pull Requests. Abra uma [issue](../../issues/new/choose) para bugs ou 
 
 ## 📚 Recursos úteis
 
-- [Documentação do discord-player](https://discord-player.js.org/)
+- [Documentação do lavalink-client](https://tomato6966.github.io/lavalink-client/)
+- [Documentação do Lavalink](https://lavalink.dev/)
 - [Documentação do discord.js](https://discord.js.org/#/docs)
 - [Discord Developer Docs](https://discord.com/developers/docs/intro)
 - [Documentação do Coolify](https://coolify.io/docs)

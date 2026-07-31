@@ -1,9 +1,10 @@
 import { ChannelType, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
+import type { SearchResult } from 'lavalink-client';
 import type { BotClient } from '../types/client.js';
 import type { Command } from '../types/command.js';
-import type { QueueMetadata } from '../types/queue.js';
 import { BRAND_COLOR } from '../lib/embeds.js';
+import { formatDuration } from '../lib/format.js';
 
 export const data = new SlashCommandBuilder()
   .setName('play')
@@ -23,57 +24,65 @@ export async function execute(interaction: ChatInputCommandInteraction, client: 
 
   await interaction.deferReply();
 
-  const result = await client.player.search(query, { requestedBy: interaction.user });
-  const firstTrack = result?.tracks[0];
-  if (!result || !firstTrack) {
+  const player = client.lavalink.createPlayer({
+    guildId: interaction.guild!.id,
+    voiceChannelId: voiceChannel.id,
+    textChannelId: interaction.channelId,
+    selfDeaf: true,
+  });
+
+  if (!player.connected) await player.connect();
+
+  // useUnresolvedData isn't enabled, so search() always resolves to SearchResult (never the
+  // UnresolvedSearchResult half of its return union).
+  const result = (await player.search({ query }, interaction.user)) as SearchResult;
+  if (result.loadType === 'error' || result.loadType === 'empty') {
     return interaction.editReply('❌ Nenhum resultado encontrado.');
   }
 
-  const queue = client.player.nodes.create<QueueMetadata>(interaction.guild!, {
-    metadata: { channel: interaction.channel?.isSendable() ? interaction.channel : null },
-    volume: 80,
-    leaveOnEnd: true,
-    leaveOnEndCooldown: 2000,
-    leaveOnStop: true,
-    leaveOnEmpty: true,
-    leaveOnEmptyCooldown: 60_000,
-  });
-
-  if (!queue.connection) await queue.connect(voiceChannel);
-
-  if (result.playlist) {
-    queue.addTrack(result.tracks);
-  } else {
-    queue.addTrack(firstTrack);
+  const firstTrack = result.tracks[0];
+  if (!firstTrack) {
+    return interaction.editReply('❌ Nenhum resultado encontrado.');
   }
 
-  if (!queue.node.isPlaying() && !queue.node.isPaused()) await queue.node.play();
+  if (result.loadType === 'playlist') {
+    await player.queue.add(result.tracks);
+  } else {
+    await player.queue.add(firstTrack);
+  }
 
-  const embed = result.playlist
-    ? new EmbedBuilder()
-        .setColor(BRAND_COLOR)
-        .setTitle('📑 Playlist adicionada à fila')
-        .setDescription(
-          `**[${result.playlist.title}](${result.playlist.url})** com ${result.tracks.length} faixas.`,
-        )
-        .setThumbnail(result.playlist.thumbnail || null)
-        .setFooter({
-          text: `Pedido por ${interaction.user.tag}`,
-          iconURL: interaction.user.displayAvatarURL(),
-        })
-    : new EmbedBuilder()
-        .setColor(BRAND_COLOR)
-        .setTitle('🎵 Adicionado à fila')
-        .setDescription(`**[${firstTrack.title}](${firstTrack.url})**`)
-        .setThumbnail(firstTrack.thumbnail || null)
-        .addFields(
-          { name: 'Duração', value: firstTrack.duration, inline: true },
-          { name: 'Autor', value: firstTrack.author, inline: true },
-        )
-        .setFooter({
-          text: `Pedido por ${interaction.user.tag}`,
-          iconURL: interaction.user.displayAvatarURL(),
-        });
+  if (!player.playing && !player.paused) await player.play();
+
+  const embed =
+    result.loadType === 'playlist' && result.playlist
+      ? new EmbedBuilder()
+          .setColor(BRAND_COLOR)
+          .setTitle('📑 Playlist adicionada à fila')
+          .setDescription(
+            `**[${result.playlist.name}](${result.playlist.uri ?? ''})** com ${result.tracks.length} faixas.`,
+          )
+          .setThumbnail(result.playlist.thumbnail ?? null)
+          .setFooter({
+            text: `Pedido por ${interaction.user.tag}`,
+            iconURL: interaction.user.displayAvatarURL(),
+          })
+      : new EmbedBuilder()
+          .setColor(BRAND_COLOR)
+          .setTitle('🎵 Adicionado à fila')
+          .setDescription(`**[${firstTrack.info.title}](${firstTrack.info.uri})**`)
+          .setThumbnail(firstTrack.info.artworkUrl)
+          .addFields(
+            {
+              name: 'Duração',
+              value: firstTrack.info.isStream ? 'AO VIVO' : formatDuration(firstTrack.info.duration),
+              inline: true,
+            },
+            { name: 'Autor', value: firstTrack.info.author, inline: true },
+          )
+          .setFooter({
+            text: `Pedido por ${interaction.user.tag}`,
+            iconURL: interaction.user.displayAvatarURL(),
+          });
 
   return interaction.editReply({ embeds: [embed] });
 }

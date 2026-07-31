@@ -8,7 +8,7 @@ updates:
       discord-js:
         patterns:
           - 'discord*'
-          - '@discord-player/*'
+          - 'lavalink-client'
       dev-tooling:
         patterns:
           - 'eslint*'

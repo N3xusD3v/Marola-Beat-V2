@@ -1,10 +1,9 @@
 import { Router } from 'express';
-import { ChannelType } from 'discord.js';
-import type { Track } from 'discord-player';
+import type { SearchResult, Track, UnresolvedTrack } from 'lavalink-client';
 import type { BotClient } from '../types/client.js';
-import type { QueueMetadata } from '../types/queue.js';
 import { env } from '../config/env.js';
 import { requesterName } from '../lib/embeds.js';
+import { formatDuration } from '../lib/format.js';
 import { logger } from '../lib/logger.js';
 import { requireVoiceMember } from './middleware.js';
 
@@ -18,14 +17,14 @@ interface TrackDTO {
   requestedBy: string;
 }
 
-function toDTO(track: Track): TrackDTO {
+function toDTO(track: Track | UnresolvedTrack): TrackDTO {
   return {
-    id: track.id,
-    title: track.title,
-    author: track.author,
-    url: track.url,
-    duration: track.duration,
-    thumbnail: track.thumbnail ?? null,
+    id: track.info.identifier ?? track.info.title,
+    title: track.info.title,
+    author: track.info.author ?? 'Desconhecido',
+    url: track.info.uri ?? '',
+    duration: track.info.isStream ? 'AO VIVO' : formatDuration(track.info.duration ?? 0),
+    thumbnail: track.info.artworkUrl ?? null,
     requestedBy: requesterName(track),
   };
 }
@@ -49,11 +48,11 @@ export function createQueueRouter(client: BotClient) {
   router.use(requireVoiceMember(client));
 
   router.get('/', (req, res) => {
-    const queue = client.player.nodes.get<QueueMetadata>(env.webGuildId);
+    const player = client.lavalink.getPlayer(env.webGuildId);
     res.json({
-      current: queue?.currentTrack ? toDTO(queue.currentTrack) : null,
-      tracks: queue ? queue.tracks.toArray().map(toDTO) : [],
-      paused: queue?.node.isPaused() ?? false,
+      current: player?.queue.current ? toDTO(player.queue.current) : null,
+      tracks: player ? player.queue.tracks.map(toDTO) : [],
+      paused: player?.paused ?? false,
     });
   });
 
@@ -66,8 +65,8 @@ export function createQueueRouter(client: BotClient) {
       }
 
       const guild = client.guilds.cache.get(env.webGuildId);
-      const voiceChannel = guild?.channels.cache.get(req.voice!.voiceChannelId);
-      if (!guild || !voiceChannel || voiceChannel.type !== ChannelType.GuildVoice) {
+      const voiceChannelId = req.voice!.voiceChannelId;
+      if (!guild || !guild.channels.cache.has(voiceChannelId)) {
         res.status(409).json({ error: 'voice_channel_unavailable' });
         return;
       }
@@ -76,37 +75,39 @@ export function createQueueRouter(client: BotClient) {
         // Busca o User real (não só o id salvo na sessão) para que o embed/DTO
         // mostre o nome de usuário corretamente em "Pedido por".
         const requestedBy = await client.users.fetch(req.session.user!.id).catch(() => undefined);
-        const result = await client.player.search(query, { requestedBy });
-        const firstTrack = result?.tracks[0];
-        if (!result || !firstTrack) {
+
+        const player = client.lavalink.createPlayer({
+          guildId: guild.id,
+          voiceChannelId,
+          selfDeaf: true,
+        });
+        if (!player.connected) await player.connect();
+
+        // useUnresolvedData isn't enabled, so search() always resolves to SearchResult.
+        const result = (await player.search({ query }, requestedBy)) as SearchResult;
+        if (result.loadType === 'error' || result.loadType === 'empty') {
           res.status(404).json({ error: 'no_results' });
           return;
         }
 
-        const queue = client.player.nodes.create<QueueMetadata>(guild, {
-          metadata: { channel: null },
-          volume: 80,
-          leaveOnEnd: true,
-          leaveOnEndCooldown: 2000,
-          leaveOnStop: true,
-          leaveOnEmpty: true,
-          leaveOnEmptyCooldown: 60_000,
-        });
-
-        if (!queue.connection) await queue.connect(voiceChannel);
-
-        if (result.playlist) {
-          queue.addTrack(result.tracks);
-        } else {
-          queue.addTrack(firstTrack);
+        const firstTrack = result.tracks[0];
+        if (!firstTrack) {
+          res.status(404).json({ error: 'no_results' });
+          return;
         }
 
-        if (!queue.node.isPlaying() && !queue.node.isPaused()) await queue.node.play();
+        if (result.loadType === 'playlist') {
+          await player.queue.add(result.tracks);
+        } else {
+          await player.queue.add(firstTrack);
+        }
+
+        if (!player.playing && !player.paused) await player.play();
 
         res.status(201).json({
-          addedPlaylist: Boolean(result.playlist),
+          addedPlaylist: result.loadType === 'playlist',
           track: toDTO(firstTrack),
-          count: result.playlist ? result.tracks.length : 1,
+          count: result.loadType === 'playlist' ? result.tracks.length : 1,
         });
       } catch (error) {
         logger.error('Erro ao adicionar música via web:', error);
@@ -116,24 +117,34 @@ export function createQueueRouter(client: BotClient) {
   });
 
   router.post('/move', (req, res) => {
-    const index = numberField(req.body, 'index');
-    const direction = stringField(req.body, 'direction');
-    if (index === undefined || !Number.isInteger(index) || (direction !== 'up' && direction !== 'down')) {
-      res.status(400).json({ error: 'invalid_move' });
-      return;
-    }
+    void (async () => {
+      const index = numberField(req.body, 'index');
+      const direction = stringField(req.body, 'direction');
+      if (index === undefined || !Number.isInteger(index) || (direction !== 'up' && direction !== 'down')) {
+        res.status(400).json({ error: 'invalid_move' });
+        return;
+      }
 
-    const queue = client.player.nodes.get<QueueMetadata>(env.webGuildId);
-    const size = queue?.tracks.size ?? 0;
-    const target = direction === 'up' ? index - 1 : index + 1;
+      const player = client.lavalink.getPlayer(env.webGuildId);
+      const size = player?.queue.tracks.length ?? 0;
+      const target = direction === 'up' ? index - 1 : index + 1;
 
-    if (!queue || index < 0 || index >= size || target < 0 || target >= size) {
-      res.status(400).json({ error: 'out_of_range' });
-      return;
-    }
+      if (!player || index < 0 || index >= size || target < 0 || target >= size) {
+        res.status(400).json({ error: 'out_of_range' });
+        return;
+      }
 
-    queue.node.swap(index, target);
-    res.status(204).end();
+      const start = Math.min(index, target);
+      const first = player.queue.tracks[start];
+      const second = player.queue.tracks[start + 1];
+      if (!first || !second) {
+        res.status(400).json({ error: 'out_of_range' });
+        return;
+      }
+
+      await player.queue.splice(start, 2, [second, first]);
+      res.status(204).end();
+    })();
   });
 
   return router;

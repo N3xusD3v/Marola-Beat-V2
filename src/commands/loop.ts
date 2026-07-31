@@ -1,15 +1,15 @@
 import { SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
-import { QueueRepeatMode } from 'discord-player';
+import type { RepeatMode } from 'lavalink-client';
 import type { BotClient } from '../types/client.js';
 import type { Command } from '../types/command.js';
-import { getQueue } from '../lib/queue.js';
+import { getPlayer } from '../lib/queue.js';
 
-const REPEAT_MODES = {
-  off: { mode: QueueRepeatMode.OFF, message: '🔁 Repetição desativada.' },
-  track: { mode: QueueRepeatMode.TRACK, message: '🔂 Repetição de faixa ativada.' },
-  queue: { mode: QueueRepeatMode.QUEUE, message: '🔁 Repetição da fila ativada.' },
-} as const;
+const REPEAT_MESSAGES: Record<RepeatMode, string> = {
+  off: '🔁 Repetição desativada.',
+  track: '🔂 Repetição de faixa ativada.',
+  queue: '🔁 Repetição da fila ativada.',
+};
 
 export const data = new SlashCommandBuilder()
   .setName('loop')
@@ -27,15 +27,14 @@ export const data = new SlashCommandBuilder()
   );
 
 export async function execute(interaction: ChatInputCommandInteraction, client: BotClient) {
-  const mode = interaction.options.getString('mode', true) as keyof typeof REPEAT_MODES;
-  const queue = getQueue(interaction, client);
-  if (!queue || !queue.currentTrack) {
+  const mode = interaction.options.getString('mode', true) as RepeatMode;
+  const player = getPlayer(interaction, client);
+  if (!player || !player.queue.current) {
     return interaction.reply({ content: '❌ Não há música tocando.', ephemeral: true });
   }
 
-  const { mode: repeatMode, message } = REPEAT_MODES[mode];
-  queue.setRepeatMode(repeatMode);
-  return interaction.reply(message);
+  await player.setRepeatMode(mode);
+  return interaction.reply(REPEAT_MESSAGES[mode]);
 }
 
 export const command = { data, execute } satisfies Command;

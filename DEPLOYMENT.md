@@ -4,6 +4,11 @@ O bot mantém uma conexão WebSocket com o Discord **e** serve um painel web (fi
 reprodução, login com Discord) na porta interna `3000`. O painel só é acessível para quem
 está no momento no mesmo canal de voz que o bot — veja [README.md](README.md#painel-web).
 
+O `docker-compose.yml` sobe dois serviços: `bot` (o que acabou de ser descrito, recebe o domínio
+no Coolify) e `lavalink` (áudio + conexão de voz com o Discord — só acessível pela rede interna do
+compose, nunca exponha porta/domínio pra ele). O primeiro deploy demora um pouco mais porque o
+Lavalink baixa o plugin de YouTube na inicialização.
+
 ## Domínio e OAuth2 (fazer antes do deploy)
 
 O painel usa login OAuth2 do Discord, então a aplicação do bot precisa saber a URL pública
@@ -32,6 +37,9 @@ Mais simples de manter — o próprio Coolify clona o repositório e builda a im
    - `WEB_GUILD_ID` (ID do servidor cuja fila o painel gerencia)
    - `PUBLIC_URL` = `https://beat.n3xus.dev`
    - `SESSION_SECRET` (string aleatória — `openssl rand -hex 32`)
+   - `LAVALINK_PASSWORD` (string aleatória — `openssl rand -hex 32`; compartilhada entre os
+     serviços `bot` e `lavalink` automaticamente pelo `docker-compose.yml`, só precisa cadastrar
+     uma vez)
    - `LOG_LEVEL` (opcional, padrão `info`)
 5. Em **Domains**, atribua ao serviço `bot`: `https://beat.n3xus.dev:3000` — o `:3000` diz ao
    Coolify para rotear para a porta interna do container; **não** adicione `ports:` no
@@ -84,9 +92,10 @@ Rode `npm run register` novamente sempre que adicionar, remover ou alterar um co
 
 ## Checklist de produção
 
-- [ ] `DISCORD_TOKEN`, `DISCORD_APP_ID`, `DISCORD_CLIENT_SECRET`, `WEB_GUILD_ID`, `PUBLIC_URL` e
-      `SESSION_SECRET` configurados como variáveis de ambiente no Coolify (nunca commitados no
-      repositório)
+- [ ] `DISCORD_TOKEN`, `DISCORD_APP_ID`, `DISCORD_CLIENT_SECRET`, `WEB_GUILD_ID`, `PUBLIC_URL`,
+      `SESSION_SECRET` e `LAVALINK_PASSWORD` configurados como variáveis de ambiente no Coolify
+      (nunca commitados no repositório)
+- [ ] Serviço `lavalink` sem porta/domínio exposto no Coolify (só o `bot` recebe domínio)
 - [ ] `GUILD_ID` vazio em produção (comandos globais) ou definido para um servidor de staging
 - [ ] Redirect URI `https://beat.n3xus.dev/auth/discord/callback` cadastrado no Developer Portal
 - [ ] Domínio `https://beat.n3xus.dev:3000` atribuído ao serviço no Coolify (sem `ports:` no compose)

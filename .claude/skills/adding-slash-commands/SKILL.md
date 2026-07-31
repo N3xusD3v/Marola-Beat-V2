@@ -15,7 +15,7 @@ description: Adds a new Discord slash command to the Marola Beat bot following t
    import type { ChatInputCommandInteraction } from 'discord.js';
    import type { BotClient } from '../types/client.js';
    import type { Command } from '../types/command.js';
-   import { getQueue } from '../lib/queue.js';
+   import { getPlayer } from '../lib/queue.js';
 
    export const data = new SlashCommandBuilder().setName('nome').setDescription('Descrição em pt-BR');
 
@@ -26,9 +26,11 @@ description: Adds a new Discord slash command to the Marola Beat bot following t
    export const command = { data, execute } satisfies Command;
    ```
 
-2. If the command needs the guild's queue, use `getQueue(interaction, client)` from
-   `src/lib/queue.ts` instead of calling `client.player.nodes.get()` directly — it's already typed
-   with `QueueMetadata`.
+2. If the command needs the guild's player/queue, use `getPlayer(interaction, client)` from
+   `src/lib/queue.ts` instead of calling `client.lavalink.getPlayer()` directly — it does the
+   `interaction.guildId` null-check for you. It returns a `lavalink-client` `Player`
+   (`player.queue.tracks`, `player.queue.current`, `player.playing`/`.paused`, etc.), not a
+   discord-player queue.
 3. For embeds, reuse `BRAND_COLOR`/`trackEmbed` from `src/lib/embeds.ts` rather than duplicating
    colors/fields.
 4. Register the command in `src/commands/index.ts`: add the import and include it in the

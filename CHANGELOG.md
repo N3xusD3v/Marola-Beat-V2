@@ -3,6 +3,22 @@
 Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [Unreleased]
+
+### Alterado
+
+- **Breaking:** migração de `discord-player` (engine de voz própria via `discord-voip`) para
+  [Lavalink](https://lavalink.dev) v4 (via `lavalink-client`), depois de conexões de voz feitas
+  direto do processo do bot se mostrarem pouco confiáveis em produção. A conexão UDP com o Discord
+  e a transcodificação de áudio agora acontecem no serviço `lavalink` (novo, em
+  `docker-compose.yml`), não no processo do bot.
+- **Breaking (config):** nova variável de ambiente obrigatória — `LAVALINK_PASSWORD`. Veja
+  `.env.example` e [DEPLOYMENT.md](DEPLOYMENT.md).
+- Removidas as dependências `discord-player`, `@discord-player/extractor`,
+  `discord-player-youtubei` e `youtube-dl-exec`; adicionada `lavalink-client`.
+- `Dockerfile` não instala mais `ffmpeg` (o Lavalink cuida da transcodificação em seu próprio
+  container).
+
 ## [2.1.0] - 2026-07-30
 
 ### Adicionado

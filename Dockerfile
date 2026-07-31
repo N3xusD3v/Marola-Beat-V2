@@ -2,10 +2,6 @@
 
 FROM node:22-alpine AS base
 WORKDIR /app
-# youtube-dl-exec (pulled in as a transitive fix for discord-player-youtubei) tries to
-# download a yt-dlp binary via a Python-based preinstall check. We never use that fallback
-# path, so skip the check instead of installing a full Python toolchain just for this.
-ENV YOUTUBE_DL_SKIP_PYTHON_CHECK=1
 
 # ---- Dependencies (full, for build) ----
 FROM base AS deps
@@ -25,9 +21,10 @@ RUN npm ci --omit=dev
 
 # ---- Final runtime image ----
 FROM node:22-alpine AS runtime
-# ffmpeg is required by discord-player for audio transcoding.
+# Audio transcoding and the actual Discord voice UDP connection now happen in the separate
+# Lavalink service (see docker-compose.yml) — this container no longer needs ffmpeg.
 # tini is used as PID 1 so SIGTERM from Coolify/Docker triggers a clean shutdown.
-RUN apk add --no-cache ffmpeg tini \
+RUN apk add --no-cache tini \
     && addgroup -S bot && adduser -S bot -G bot
 
 WORKDIR /app
@@ -38,10 +35,6 @@ COPY package.json ./
 
 USER bot
 ENV NODE_ENV=production
-# Discord's voice WebSocket has flaky/inconsistent AAAA records; on hosts with IPv6 enabled
-# by default (e.g. Hetzner) Node can pick a dead IPv6 route and the voice handshake times out
-# with a generic AbortError from discord-voip. Forcing IPv4 first avoids that path entirely.
-ENV NODE_OPTIONS=--dns-result-order=ipv4first
 EXPOSE 3000
 
 ENTRYPOINT ["/sbin/tini", "--"]

@@ -12,6 +12,9 @@ interface Env {
   sessionSecret: string;
   port: number;
   logLevel: LogLevel;
+  lavalinkHost: string;
+  lavalinkPort: number;
+  lavalinkPassword: string;
 }
 
 function required(name: string): string {
@@ -37,6 +40,11 @@ function port(): number {
   return Number.isInteger(value) && value > 0 ? value : 3000;
 }
 
+function lavalinkPort(): number {
+  const value = Number(process.env.LAVALINK_PORT ?? 2333);
+  return Number.isInteger(value) && value > 0 ? value : 2333;
+}
+
 export const env: Env = {
   discordToken: required('DISCORD_TOKEN'),
   discordAppId: required('DISCORD_APP_ID'),
@@ -47,4 +55,7 @@ export const env: Env = {
   sessionSecret: required('SESSION_SECRET'),
   port: port(),
   logLevel: logLevel(),
+  lavalinkHost: process.env.LAVALINK_HOST || 'lavalink',
+  lavalinkPort: lavalinkPort(),
+  lavalinkPassword: required('LAVALINK_PASSWORD'),
 };
