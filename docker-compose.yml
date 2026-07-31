@@ -32,7 +32,9 @@ services:
     environment:
       LAVALINK_SERVER_PASSWORD: ${LAVALINK_PASSWORD}
       SERVER_PORT: 2333
-      YOUTUBE_OAUTH_REFRESH_TOKEN: ${YOUTUBE_OAUTH_REFRESH_TOKEN}
+      # Nome exigido pelo relaxed-binding do Spring Boot para plugins.youtube.oauth.refreshToken —
+      # esse valor NÃO pode vir de um placeholder `${...}` dentro de application.yml (ver nota lá).
+      PLUGINS_YOUTUBE_OAUTH_REFRESHTOKEN: ${YOUTUBE_OAUTH_REFRESH_TOKEN}
     volumes:
       # Sem volume nomeado para /opt/Lavalink/plugins de propósito: o container roda como usuário
       # não-root e um volume nomeado do Docker nasce com dono root, o que quebra o download do

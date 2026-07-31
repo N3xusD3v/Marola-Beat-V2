@@ -41,11 +41,13 @@ plugins:
     # Requisições de busca vindas do IP do Hetzner são bloqueadas pelo YouTube ("Invalid status
     # code for search response: 400" / "sign in to confirm you're not a bot") — problema conhecido
     # e documentado para hosts de datacenter. OAuth (login com uma conta Google, burner, não a
-    # principal — ver aviso do próprio plugin no log) contorna isso. Um refresh token válido
-    # pula o fluxo de device-code automaticamente nos próximos boots.
+    # principal — ver aviso do próprio plugin no log) contorna isso. O refresh token NÃO é lido
+    # daqui via placeholder — essa seção de plugin não passa pela resolução `${...}` do Spring
+    # (confirmado rodando em produção: o valor ficava literal e disparava o device-code flow de
+    # novo a cada deploy). É passado direto como env var Spring-relaxed-binding
+    # PLUGINS_YOUTUBE_OAUTH_REFRESHTOKEN no docker-compose.yml.
     oauth:
       enabled: true
-      refreshToken: '${YOUTUBE_OAUTH_REFRESH_TOKEN}'
 
 metrics:
   prometheus:
