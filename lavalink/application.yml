@@ -38,6 +38,11 @@ plugins:
       - ANDROID_VR
       - WEB
       - WEBEMBEDDED
+    # Requisições de busca vindas do IP do Hetzner são bloqueadas pelo YouTube ("Invalid status
+    # code for search response: 400" / "sign in to confirm you're not a bot") — problema conhecido
+    # e documentado para hosts de datacenter. OAuth (login com uma conta Google) contorna isso.
+    oauth:
+      enabled: true
 
 metrics:
   prometheus:
@@ -50,6 +55,9 @@ logging:
   level:
     root: INFO
     lavalink: INFO
+    # Sem isso, o prompt do device-code flow do OAuth (URL + código pra colar em
+    # google.com/device) não aparece no log — é a única forma de completar o login.
+    dev.lavalink.youtube.http.YoutubeOauth2Handler: INFO
   logback:
     rollingpolicy:
       max-file-size: 50MB
