@@ -38,6 +38,10 @@ COPY package.json ./
 
 USER bot
 ENV NODE_ENV=production
+# Discord's voice WebSocket has flaky/inconsistent AAAA records; on hosts with IPv6 enabled
+# by default (e.g. Hetzner) Node can pick a dead IPv6 route and the voice handshake times out
+# with a generic AbortError from discord-voip. Forcing IPv4 first avoids that path entirely.
+ENV NODE_OPTIONS=--dns-result-order=ipv4first
 EXPOSE 3000
 
 ENTRYPOINT ["/sbin/tini", "--"]

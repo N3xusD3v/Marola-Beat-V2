@@ -44,5 +44,11 @@ export async function createPlayer(client: Client): Promise<Player> {
     logger.info(`Fila vazia na guild ${queue.guild?.id}`);
   });
 
+  // Só produz saída com LOG_LEVEL=debug; útil para diagnosticar handshake de voz
+  // (WS -> UDP discovery -> Ready) quando a conexão trava/aborta silenciosamente.
+  player.events.on('debug', (queue, message) => {
+    logger.debug(`[queue ${queue.guild?.id}] ${message}`);
+  });
+
   return player;
 }
