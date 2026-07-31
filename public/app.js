@@ -8,8 +8,12 @@ const ERROR_MESSAGES = {
   wrong_voice_channel: 'Você precisa estar no mesmo canal de voz que o bot está tocando.',
 };
 
+const POLL_INTERVAL_MS = 4000;
+
 let pollTimer = null;
-let dragIndex = null;
+let tickTimer = null;
+let lastData = null;
+let localPositionMs = 0;
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -24,6 +28,13 @@ async function api(path, options) {
     headers: { 'Content-Type': 'application/json', ...(options?.headers ?? {}) },
   });
   return res;
+}
+
+function formatMs(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 
 function renderLogin() {
@@ -64,10 +75,20 @@ function renderUser(user) {
   userBox.appendChild(logout);
 }
 
-function trackRow(track, index, isDraggable) {
+function actionButton(label, title, onClick, disabled) {
+  const btn = el('button', 'icon-btn', label);
+  btn.type = 'button';
+  btn.title = title;
+  btn.disabled = Boolean(disabled);
+  btn.addEventListener('click', (event) => {
+    event.stopPropagation();
+    onClick();
+  });
+  return btn;
+}
+
+function trackRow(track, index, { onUp, onDown, onRemove, isFirst, isLast } = {}) {
   const row = el('li', 'track-row');
-  row.draggable = isDraggable;
-  row.dataset.index = String(index);
 
   if (track.thumbnail) {
     const thumb = document.createElement('img');
@@ -84,8 +105,12 @@ function trackRow(track, index, isDraggable) {
   );
   row.appendChild(info);
 
-  if (isDraggable) {
-    row.appendChild(el('span', 'drag-handle', '⠿'));
+  if (onUp || onDown || onRemove) {
+    const actions = el('div', 'track-actions');
+    if (onUp) actions.appendChild(actionButton('▲', 'Mover para cima', onUp, isFirst));
+    if (onDown) actions.appendChild(actionButton('▼', 'Mover para baixo', onDown, isLast));
+    if (onRemove) actions.appendChild(actionButton('✕', 'Remover da fila', onRemove));
+    row.appendChild(actions);
   }
 
   return row;
@@ -96,29 +121,77 @@ async function moveTrack(index, direction) {
   await loadQueue();
 }
 
-function attachDragHandlers(list) {
-  list.querySelectorAll('.track-row').forEach((row) => {
-    row.addEventListener('dragstart', () => {
-      dragIndex = Number(row.dataset.index);
-      row.classList.add('dragging');
-    });
-    row.addEventListener('dragend', () => {
-      row.classList.remove('dragging');
-      dragIndex = null;
-    });
-    row.addEventListener('dragover', (event) => {
-      event.preventDefault();
-    });
-    row.addEventListener('drop', (event) => {
-      event.preventDefault();
-      const targetIndex = Number(row.dataset.index);
-      if (dragIndex === null || targetIndex === dragIndex) return;
-      // Só é permitido soltar em cima do vizinho imediato (troca de posição única).
-      if (Math.abs(targetIndex - dragIndex) !== 1) return;
-      const direction = targetIndex < dragIndex ? 'up' : 'down';
-      void moveTrack(dragIndex, direction);
-    });
-  });
+async function removeTrack(index) {
+  await api('/api/queue/remove', { method: 'POST', body: JSON.stringify({ index }) });
+  await loadQueue();
+}
+
+async function togglePause() {
+  await api('/api/queue/pause', { method: 'POST' });
+  await loadQueue();
+}
+
+async function skipTrack() {
+  await api('/api/queue/skip', { method: 'POST' });
+  await loadQueue();
+}
+
+function renderPlayer(data) {
+  const card = el('section', 'card now-playing');
+  card.appendChild(el('h2', null, 'Tocando agora'));
+
+  if (!data.current) {
+    card.appendChild(el('p', 'empty', 'Nada tocando no momento.'));
+    return card;
+  }
+
+  const track = data.current;
+  const body = el('div', 'player-body');
+
+  if (track.thumbnail) {
+    const thumb = document.createElement('img');
+    thumb.src = track.thumbnail;
+    thumb.alt = '';
+    thumb.className = 'thumb thumb-large';
+    body.appendChild(thumb);
+  }
+
+  const info = el('div', 'track-info');
+  info.appendChild(el('div', 'track-title', track.title));
+  info.appendChild(el('div', 'track-meta', `${track.author} • pedido por ${track.requestedBy}`));
+
+  if (!track.isStream) {
+    const progress = el('div', 'progress');
+    const bar = el('div', 'progress-bar');
+    const pct = track.durationMs > 0 ? Math.min(100, (localPositionMs / track.durationMs) * 100) : 0;
+    bar.style.width = `${pct}%`;
+    progress.appendChild(bar);
+    info.appendChild(progress);
+
+    const times = el('div', 'progress-times');
+    times.appendChild(el('span', null, formatMs(localPositionMs)));
+    times.appendChild(el('span', null, track.duration));
+    info.appendChild(times);
+  } else {
+    info.appendChild(el('div', 'progress-times', 'AO VIVO'));
+  }
+
+  body.appendChild(info);
+  card.appendChild(body);
+
+  const controls = el('div', 'player-controls');
+  const pauseBtn = el('button', 'btn btn-primary', data.paused ? '▶ Retomar' : '⏸ Pausar');
+  pauseBtn.type = 'button';
+  pauseBtn.addEventListener('click', () => void togglePause());
+  controls.appendChild(pauseBtn);
+
+  const skipBtn = el('button', 'btn btn-secondary', '⏭ Pular');
+  skipBtn.type = 'button';
+  skipBtn.addEventListener('click', () => void skipTrack());
+  controls.appendChild(skipBtn);
+
+  card.appendChild(controls);
+  return card;
 }
 
 async function loadQueue() {
@@ -130,25 +203,21 @@ async function loadQueue() {
   }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
+    stopTicking();
     renderBlocked(ERROR_MESSAGES[body.error] ?? 'Não foi possível carregar a fila.');
     return;
   }
 
   const data = await res.json();
+  lastData = data;
+  localPositionMs = data.positionMs ?? 0;
   renderQueue(data);
+  startTicking();
 }
 
 function renderQueue(data) {
   app.textContent = '';
-
-  const nowPlaying = el('section', 'card now-playing');
-  nowPlaying.appendChild(el('h2', null, 'Tocando agora'));
-  if (data.current) {
-    nowPlaying.appendChild(trackRow(data.current, -1, false));
-  } else {
-    nowPlaying.appendChild(el('p', 'empty', 'Nada tocando no momento.'));
-  }
-  app.appendChild(nowPlaying);
+  app.appendChild(renderPlayer(data));
 
   const addSection = el('section', 'card add-track');
   const form = document.createElement('form');
@@ -186,18 +255,44 @@ function renderQueue(data) {
   } else {
     const list = document.createElement('ul');
     data.tracks.forEach((track, index) => {
-      list.appendChild(trackRow(track, index, data.tracks.length > 1));
+      list.appendChild(
+        trackRow(track, index, {
+          onUp: () => void moveTrack(index, 'up'),
+          onDown: () => void moveTrack(index, 'down'),
+          onRemove: () => void removeTrack(index),
+          isFirst: index === 0,
+          isLast: index === data.tracks.length - 1,
+        }),
+      );
     });
     queueSection.appendChild(list);
-    queueSection.appendChild(el('p', 'hint', 'Arraste uma música para trocar de posição com a vizinha.'));
-    attachDragHandlers(list);
   }
   app.appendChild(queueSection);
+}
+
+function startTicking() {
+  stopTicking();
+  if (!lastData?.current || lastData.current.isStream || !lastData.playing || lastData.paused) return;
+  tickTimer = setInterval(() => {
+    localPositionMs += 250;
+    const bar = document.querySelector('.progress-bar');
+    if (bar && lastData?.current?.durationMs) {
+      bar.style.width = `${Math.min(100, (localPositionMs / lastData.current.durationMs) * 100)}%`;
+    }
+    const times = document.querySelector('.progress-times');
+    if (times?.firstChild) times.firstChild.textContent = formatMs(localPositionMs);
+  }, 250);
+}
+
+function stopTicking() {
+  if (tickTimer) clearInterval(tickTimer);
+  tickTimer = null;
 }
 
 function stopPolling() {
   if (pollTimer) clearInterval(pollTimer);
   pollTimer = null;
+  stopTicking();
 }
 
 async function init() {
@@ -209,7 +304,7 @@ async function init() {
   const user = await res.json();
   renderUser(user);
   await loadQueue();
-  pollTimer = setInterval(loadQueue, 4000);
+  pollTimer = setInterval(loadQueue, POLL_INTERVAL_MS);
 }
 
 void init();

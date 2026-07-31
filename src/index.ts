@@ -23,13 +23,6 @@ async function main(): Promise<void> {
   // discord.js still emits the untyped legacy 'raw' event (WebSocketManager.js) with every
   // gateway dispatch payload; lavalink-client needs it to forward voice state/server updates.
   client.on('raw', (data: unknown) => {
-    // TODO(diagnóstico temporário): remover depois de confirmar o handshake de voz.
-    if (typeof data === 'object' && data !== null && 't' in data) {
-      const eventType = (data as { t?: unknown }).t;
-      if (eventType === 'VOICE_STATE_UPDATE' || eventType === 'VOICE_SERVER_UPDATE') {
-        logger.info(`[diag] raw ${String(eventType)} recebido`);
-      }
-    }
     void client.lavalink.sendRawData(data as VoicePacket | VoiceServer | VoiceState | ChannelDeletePacket);
   });
 

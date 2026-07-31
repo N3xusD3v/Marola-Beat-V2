@@ -13,17 +13,22 @@ interface TrackDTO {
   author: string;
   url: string;
   duration: string;
+  durationMs: number;
+  isStream: boolean;
   thumbnail: string | null;
   requestedBy: string;
 }
 
 function toDTO(track: Track | UnresolvedTrack): TrackDTO {
+  const durationMs = track.info.duration ?? 0;
   return {
     id: track.info.identifier ?? track.info.title,
     title: track.info.title,
     author: track.info.author ?? 'Desconhecido',
     url: track.info.uri ?? '',
-    duration: track.info.isStream ? 'AO VIVO' : formatDuration(track.info.duration ?? 0),
+    duration: track.info.isStream ? 'AO VIVO' : formatDuration(durationMs),
+    durationMs,
+    isStream: track.info.isStream ?? false,
     thumbnail: track.info.artworkUrl ?? null,
     requestedBy: requesterName(track),
   };
@@ -51,7 +56,9 @@ export function createQueueRouter(client: BotClient) {
     const player = client.lavalink.getPlayer(env.webGuildId);
     res.json({
       current: player?.queue.current ? toDTO(player.queue.current) : null,
+      positionMs: player?.position ?? 0,
       tracks: player ? player.queue.tracks.map(toDTO) : [],
+      playing: player?.playing ?? false,
       paused: player?.paused ?? false,
     });
   });
@@ -143,6 +150,51 @@ export function createQueueRouter(client: BotClient) {
       }
 
       await player.queue.splice(start, 2, [second, first]);
+      res.status(204).end();
+    })();
+  });
+
+  router.post('/remove', (req, res) => {
+    void (async () => {
+      const index = numberField(req.body, 'index');
+      const player = client.lavalink.getPlayer(env.webGuildId);
+      const size = player?.queue.tracks.length ?? 0;
+
+      if (index === undefined || !Number.isInteger(index) || !player || index < 0 || index >= size) {
+        res.status(400).json({ error: 'out_of_range' });
+        return;
+      }
+
+      await player.queue.splice(index, 1);
+      res.status(204).end();
+    })();
+  });
+
+  router.post('/pause', (req, res) => {
+    void (async () => {
+      const player = client.lavalink.getPlayer(env.webGuildId);
+      // `player.playing` is false while paused, so guard on the current track instead.
+      if (!player || !player.queue.current) {
+        res.status(409).json({ error: 'nothing_playing' });
+        return;
+      }
+      if (player.paused) {
+        await player.resume();
+      } else {
+        await player.pause();
+      }
+      res.status(204).end();
+    })();
+  });
+
+  router.post('/skip', (req, res) => {
+    void (async () => {
+      const player = client.lavalink.getPlayer(env.webGuildId);
+      if (!player || !player.queue.current) {
+        res.status(409).json({ error: 'nothing_playing' });
+        return;
+      }
+      await player.skip();
       res.status(204).end();
     })();
   });

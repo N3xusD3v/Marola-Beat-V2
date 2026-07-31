@@ -35,8 +35,9 @@ Além dos comandos de barra, o bot serve um painel web (`PUBLIC_URL`, ex.
 - **Acesso restrito**: só quem está **naquele momento** no mesmo canal de voz que o bot pode ver
   ou mexer na fila. Sair do canal revoga o acesso na próxima ação.
 - **Adicionar música** por nome ou link.
-- **Reordenar a fila arrastando** — só é possível trocar uma música de posição com a vizinha
-  imediata (arrastar de baixo pra cima ou de cima pra baixo), não pular posições.
+- **Player** com a faixa atual, barra de progresso, pausar/retomar e pular.
+- **Reordenar e remover músicas da fila** — reordenar só troca uma música de posição com a
+  vizinha imediata (botões ▲/▼), não pula posições; ✕ remove a música da fila.
 
 Configuração e variáveis de ambiente necessárias em [DEPLOYMENT.md](DEPLOYMENT.md).
 
