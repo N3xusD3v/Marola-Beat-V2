@@ -20,13 +20,22 @@ export function createLavalinkManager(client: BotClient): LavalinkManager {
         authorization: env.lavalinkPassword,
       },
     ],
-    sendToShard: (guildId, payload) => client.guilds.cache.get(guildId)?.shard.send(payload),
+    sendToShard: (guildId, payload) => {
+      const guild = client.guilds.cache.get(guildId);
+      // TODO(diagnóstico temporário): remover depois de confirmar o handshake de voz.
+      logger.info(`[diag] sendToShard guild=${guildId} found=${Boolean(guild)} op=${payload.op}`);
+      return guild?.shard.send(payload);
+    },
     client: { id: env.discordAppId },
     autoSkip: true,
     playerOptions: {
       defaultSearchPlatform: 'ytsearch',
       onEmptyQueue: { destroyAfterMs: 60_000 },
       onDisconnect: { autoReconnect: false, destroyPlayer: true },
+    },
+    advancedOptions: {
+      enableDebugEvents: true,
+      debugOptions: { noAudio: true },
     },
   });
 
@@ -67,11 +76,14 @@ export function createLavalinkManager(client: BotClient): LavalinkManager {
     logger.warn(`Desconectado do node Lavalink "${node.id}": ${JSON.stringify(reason)}`);
   });
 
-  if (env.logLevel === 'debug') {
-    manager.on('debug', (moduleName, info) => {
-      logger.debug(`[lavalink:${moduleName}] ${JSON.stringify(info)}`);
-    });
-  }
+  // TODO(diagnóstico temporário): remover depois de confirmar o handshake de voz.
+  manager.on('debug', (moduleName, info) => {
+    logger.info(`[diag] [lavalink:${moduleName}] ${JSON.stringify(info)}`);
+  });
+
+  manager.on('playerSocketClosed', (player, payload) => {
+    logger.info(`[diag] playerSocketClosed guild=${player.guildId} ${JSON.stringify(payload)}`);
+  });
 
   return manager;
 }
