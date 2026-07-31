@@ -5,6 +5,19 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ## [Unreleased]
 
+### Adicionado
+
+- Comandos `/volume`, `/remove`, `/clear`, `/previous`, `/seek` e `/leave`, fechando a paridade de
+  controles com o painel web.
+- Painel web: barra de progresso clicável (pula pra posição), slider de volume, botões de faixa
+  anterior e sair do canal, e "Limpar fila" — via novos endpoints
+  `POST /api/queue/{previous,clear,volume,seek,leave}`.
+- Painel web: gerenciamento completo da fila (pausar/retomar, pular, remover, reordenar) com
+  player ao vivo mostrando a faixa atual e progresso.
+- Autenticação OAuth do YouTube (`youtube-source` plugin) para contornar bloqueios de busca do
+  YouTube em IPs de datacenter — veja "Autenticação OAuth do YouTube" em
+  [DEPLOYMENT.md](DEPLOYMENT.md).
+
 ### Alterado
 
 - **Breaking:** migração de `discord-player` (engine de voz própria via `discord-voip`) para

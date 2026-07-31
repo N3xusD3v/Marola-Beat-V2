@@ -71,6 +71,13 @@ your refresh token as this can be reused. (...)` — copie o token entre parênt
    redeploy. A partir daí o login persiste entre deploys — o device-code flow só roda de novo se
    essa variável ficar vazia/expirar.
 
+**Se buscas do YouTube voltarem a falhar em produção** (`AllClientsFailedException` / "All clients
+failed to load the item" nos logs do `lavalink`, com os clients não-OAuth tentando e falhando um a
+um): o refresh token guardado expirou ou foi invalidado pelo Google. Não é um problema de código —
+a config e a variável de ambiente continuam corretas. A correção é repetir o processo acima do
+zero: limpe o valor de `YOUTUBE_OAUTH_REFRESH_TOKEN`, redeploy, pegue a nova URL/código do
+device-code flow nos logs e cadastre o novo token.
+
 ## DNS no Cloudflare
 
 1. Crie um registro **A** (ou CNAME) para `beat.n3xus.dev` apontando para o IP do servidor onde
