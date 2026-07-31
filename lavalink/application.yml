@@ -40,9 +40,12 @@ plugins:
       - WEBEMBEDDED
     # Requisições de busca vindas do IP do Hetzner são bloqueadas pelo YouTube ("Invalid status
     # code for search response: 400" / "sign in to confirm you're not a bot") — problema conhecido
-    # e documentado para hosts de datacenter. OAuth (login com uma conta Google) contorna isso.
+    # e documentado para hosts de datacenter. OAuth (login com uma conta Google, burner, não a
+    # principal — ver aviso do próprio plugin no log) contorna isso. Um refresh token válido
+    # pula o fluxo de device-code automaticamente nos próximos boots.
     oauth:
       enabled: true
+      refreshToken: '${YOUTUBE_OAUTH_REFRESH_TOKEN}'
 
 metrics:
   prometheus:

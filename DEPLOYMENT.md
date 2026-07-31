@@ -41,6 +41,8 @@ Mais simples de manter — o próprio Coolify clona o repositório e builda a im
      serviços `bot` e `lavalink` automaticamente pelo `docker-compose.yml`, só precisa cadastrar
      uma vez)
    - `LOG_LEVEL` (opcional, padrão `info`)
+   - `YOUTUBE_OAUTH_REFRESH_TOKEN` — só depois do primeiro deploy, veja a seção
+     "Autenticação OAuth do YouTube" abaixo. Pode deixar vazia no cadastro inicial.
 5. Em **Domains**, atribua ao serviço `bot`: `https://beat.n3xus.dev:3000` — o `:3000` diz ao
    Coolify para rotear para a porta interna do container; **não** adicione `ports:` no
    `docker-compose.yml` para isso (veja a nota no próprio arquivo).
@@ -49,6 +51,25 @@ Mais simples de manter — o próprio Coolify clona o repositório e builda a im
 
 Depois do primeiro deploy, rode o registro de comandos uma vez (veja "Registrando comandos de
 barra" abaixo).
+
+## Autenticação OAuth do YouTube (fazer depois do primeiro deploy)
+
+Buscas de música do YouTube feitas a partir de IPs de datacenter (Hetzner incluído — citado
+nominalmente pela documentação do plugin) são bloqueadas pelo YouTube (`Invalid status code for
+search response: 400` / "sign in to confirm you're not a bot"). O plugin `youtube-source`
+contorna isso autenticando com uma conta Google via OAuth (device-code flow, tipo "Smart TV"):
+
+1. Depois do primeiro deploy bem-sucedido do serviço `lavalink`, veja os logs dele no Coolify
+   (aba **Logs**) e procure por uma linha `OAUTH INTEGRATION: To give youtube-source access to
+your account, go to https://www.google.com/device and enter code XXX-XXX-XXX`.
+2. Acesse essa URL e digite o código, autenticando com uma conta Google **descartável — nunca a
+   sua principal** (aviso do próprio plugin: o uso de OAuth pode, em tese, levar ao banimento da
+   conta usada).
+3. Depois de autenticar, o log do Lavalink imprime uma linha `Token retrieved successfully. Store
+your refresh token as this can be reused. (...)` — copie o token entre parênteses.
+4. Cadastre esse valor como a variável de ambiente `YOUTUBE_OAUTH_REFRESH_TOKEN` no Coolify e
+   redeploy. A partir daí o login persiste entre deploys — o device-code flow só roda de novo se
+   essa variável ficar vazia/expirar.
 
 ## DNS no Cloudflare
 
@@ -95,6 +116,8 @@ Rode `npm run register` novamente sempre que adicionar, remover ou alterar um co
 - [ ] `DISCORD_TOKEN`, `DISCORD_APP_ID`, `DISCORD_CLIENT_SECRET`, `WEB_GUILD_ID`, `PUBLIC_URL`,
       `SESSION_SECRET` e `LAVALINK_PASSWORD` configurados como variáveis de ambiente no Coolify
       (nunca commitados no repositório)
+- [ ] `YOUTUBE_OAUTH_REFRESH_TOKEN` configurada após completar o device-code flow (veja
+      "Autenticação OAuth do YouTube" acima) — sem ela, buscas do YouTube falham em produção
 - [ ] Serviço `lavalink` sem porta/domínio exposto no Coolify (só o `bot` recebe domínio)
 - [ ] `GUILD_ID` vazio em produção (comandos globais) ou definido para um servidor de staging
 - [ ] Redirect URI `https://beat.n3xus.dev/auth/discord/callback` cadastrado no Developer Portal
