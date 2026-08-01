@@ -177,7 +177,7 @@ function actionButton(iconName, title, onClick, disabled) {
 }
 
 function trackRow(track, index, { onUp, onDown, onRemove, isFirst, isLast } = {}) {
-  const row = el('li', 'track-row');
+  const row = el('li', isFirst ? 'track-row track-row-next' : 'track-row');
 
   if (track.thumbnail) {
     const thumb = document.createElement('img');
@@ -188,6 +188,7 @@ function trackRow(track, index, { onUp, onDown, onRemove, isFirst, isLast } = {}
   }
 
   const info = el('div', 'track-info');
+  if (isFirst) info.appendChild(el('div', 'track-next-label', 'A seguir'));
   info.appendChild(el('div', 'track-title', track.title));
   info.appendChild(
     el('div', 'track-meta', `${track.author} • ${track.duration} • pedido por ${track.requestedBy}`),

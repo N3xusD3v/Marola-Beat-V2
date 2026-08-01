@@ -322,6 +322,31 @@ main {
   border-color: var(--border);
 }
 
+.track-row-next {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: inset 3px 0 0 #fff;
+  padding-left: 0.7rem;
+}
+
+.track-row-next:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.track-row-next .thumb {
+  width: 54px;
+  height: 54px;
+}
+
+.track-next-label {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 0.15rem;
+}
+
 .thumb {
   width: 46px;
   height: 46px;
@@ -330,6 +355,9 @@ main {
   flex-shrink: 0;
   border: 1px solid var(--border);
   filter: grayscale(1);
+  transition:
+    width 0.15s ease,
+    height 0.15s ease;
 }
 
 .track-actions {
