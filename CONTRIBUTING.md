@@ -34,6 +34,11 @@ Obrigado por querer contribuir! Este projeto segue um fluxo padrão de GitHub.
 Use o template de [bug report](.github/ISSUE_TEMPLATE/bug_report.yml). Inclua passos para
 reproduzir, comportamento esperado vs. observado, e logs relevantes (sem o `DISCORD_TOKEN`!).
 
+Encontrou uma vulnerabilidade de segurança (ex: bypass de autenticação, vazamento de sessão)?
+**Não abra uma issue pública** — siga o processo de disclosure privado em
+[SECURITY.md](SECURITY.md).
+
 ## Código de conduta
 
+Este projeto segue o [Código de Conduta](CODE_OF_CONDUCT.md) baseado no Contributor Covenant.
 Seja respeitoso. Discussões técnicas são bem-vindas; ataques pessoais não.

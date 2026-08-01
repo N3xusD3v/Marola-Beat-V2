@@ -9,6 +9,10 @@ Construído com [discord.js](https://discord.js.org), [Lavalink](https://lavalin
 [![CI](https://github.com/N3xusD3v/Marola-Beat-V2/actions/workflows/ci.yml/badge.svg)](https://github.com/N3xusD3v/Marola-Beat-V2/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22-339933?logo=node.js&logoColor=white)](package.json)
+[![discord.js](https://img.shields.io/github/package-json/dependency-version/N3xusD3v/Marola-Beat-V2/discord.js?logo=discord&logoColor=white&color=5865F2)](https://discord.js.org)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)
+[![Code style: Prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://prettier.io)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 </div>
 
@@ -35,8 +39,11 @@ Além dos comandos de barra, o bot serve um painel web (`PUBLIC_URL`, ex.
 - **Acesso restrito**: só quem está **naquele momento** no mesmo canal de voz que o bot pode ver
   ou mexer na fila. Sair do canal revoga o acesso na próxima ação.
 - **Adicionar música** por nome ou link.
-- **Reordenar a fila arrastando** — só é possível trocar uma música de posição com a vizinha
-  imediata (arrastar de baixo pra cima ou de cima pra baixo), não pular posições.
+- **Player** com a faixa atual, barra de progresso clicável (pula pra posição), volume,
+  pausar/retomar, pular, voltar pra faixa anterior e sair do canal.
+- **Reordenar e remover músicas da fila** — reordenar só troca uma música de posição com a
+  vizinha imediata (botões ▲/▼), não pula posições; ✕ remove uma música específica, "Limpar fila"
+  remove todas de uma vez.
 
 Configuração e variáveis de ambiente necessárias em [DEPLOYMENT.md](DEPLOYMENT.md).
 
@@ -53,6 +60,12 @@ Configuração e variáveis de ambiente necessárias em [DEPLOYMENT.md](DEPLOYME
 | `/nowplaying` | Mostra a faixa tocando no momento            |
 | `/shuffle`    | Embaralha as músicas da fila                 |
 | `/loop`       | Define o modo de repetição (off/track/queue) |
+| `/volume`     | Ajusta o volume da reprodução (0-200%)       |
+| `/remove`     | Remove uma música da fila pela posição       |
+| `/clear`      | Remove todas as músicas da fila              |
+| `/previous`   | Volta para a faixa anterior                  |
+| `/seek`       | Pula para um momento específico da faixa     |
+| `/leave`      | Desconecta o bot do canal de voz             |
 
 ## 🚀 Começando
 
@@ -118,7 +131,11 @@ para deploy como **Application (Docker Compose)** no Coolify — veja o guia com
 ## 🤝 Contribuindo
 
 Contribuições são bem-vindas! Veja [CONTRIBUTING.md](CONTRIBUTING.md) para o fluxo de branches,
-commits e Pull Requests. Abra uma [issue](../../issues/new/choose) para bugs ou sugestões.
+commits e Pull Requests, e o [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) para as regras de conduta da
+comunidade. Abra uma [issue](../../issues/new/choose) para bugs ou sugestões.
+
+Encontrou uma vulnerabilidade de segurança? Veja [SECURITY.md](SECURITY.md) para o processo de
+disclosure — não abra uma issue pública.
 
 ## 📚 Recursos úteis
 

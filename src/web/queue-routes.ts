@@ -13,17 +13,22 @@ interface TrackDTO {
   author: string;
   url: string;
   duration: string;
+  durationMs: number;
+  isStream: boolean;
   thumbnail: string | null;
   requestedBy: string;
 }
 
 function toDTO(track: Track | UnresolvedTrack): TrackDTO {
+  const durationMs = track.info.duration ?? 0;
   return {
     id: track.info.identifier ?? track.info.title,
     title: track.info.title,
     author: track.info.author ?? 'Desconhecido',
     url: track.info.uri ?? '',
-    duration: track.info.isStream ? 'AO VIVO' : formatDuration(track.info.duration ?? 0),
+    duration: track.info.isStream ? 'AO VIVO' : formatDuration(durationMs),
+    durationMs,
+    isStream: track.info.isStream ?? false,
     thumbnail: track.info.artworkUrl ?? null,
     requestedBy: requesterName(track),
   };
@@ -51,8 +56,12 @@ export function createQueueRouter(client: BotClient) {
     const player = client.lavalink.getPlayer(env.webGuildId);
     res.json({
       current: player?.queue.current ? toDTO(player.queue.current) : null,
+      positionMs: player?.position ?? 0,
       tracks: player ? player.queue.tracks.map(toDTO) : [],
+      playing: player?.playing ?? false,
       paused: player?.paused ?? false,
+      volume: player?.volume ?? 100,
+      hasPrevious: (player?.queue.previous.length ?? 0) > 0,
     });
   });
 
@@ -143,6 +152,126 @@ export function createQueueRouter(client: BotClient) {
       }
 
       await player.queue.splice(start, 2, [second, first]);
+      res.status(204).end();
+    })();
+  });
+
+  router.post('/remove', (req, res) => {
+    void (async () => {
+      const index = numberField(req.body, 'index');
+      const player = client.lavalink.getPlayer(env.webGuildId);
+      const size = player?.queue.tracks.length ?? 0;
+
+      if (index === undefined || !Number.isInteger(index) || !player || index < 0 || index >= size) {
+        res.status(400).json({ error: 'out_of_range' });
+        return;
+      }
+
+      await player.queue.splice(index, 1);
+      res.status(204).end();
+    })();
+  });
+
+  router.post('/pause', (req, res) => {
+    void (async () => {
+      const player = client.lavalink.getPlayer(env.webGuildId);
+      // `player.playing` is false while paused, so guard on the current track instead.
+      if (!player || !player.queue.current) {
+        res.status(409).json({ error: 'nothing_playing' });
+        return;
+      }
+      if (player.paused) {
+        await player.resume();
+      } else {
+        await player.pause();
+      }
+      res.status(204).end();
+    })();
+  });
+
+  router.post('/skip', (req, res) => {
+    void (async () => {
+      const player = client.lavalink.getPlayer(env.webGuildId);
+      if (!player || !player.queue.current) {
+        res.status(409).json({ error: 'nothing_playing' });
+        return;
+      }
+      await player.skip();
+      res.status(204).end();
+    })();
+  });
+
+  router.post('/previous', (req, res) => {
+    void (async () => {
+      const player = client.lavalink.getPlayer(env.webGuildId);
+      if (!player || player.queue.previous.length === 0) {
+        res.status(409).json({ error: 'no_previous' });
+        return;
+      }
+      const previous = await player.queue.shiftPrevious();
+      await player.play({ clientTrack: previous });
+      res.status(204).end();
+    })();
+  });
+
+  router.post('/clear', (req, res) => {
+    void (async () => {
+      const player = client.lavalink.getPlayer(env.webGuildId);
+      if (!player || player.queue.tracks.length === 0) {
+        res.status(409).json({ error: 'queue_empty' });
+        return;
+      }
+      await player.queue.splice(0, player.queue.tracks.length);
+      res.status(204).end();
+    })();
+  });
+
+  router.post('/volume', (req, res) => {
+    void (async () => {
+      const volume = numberField(req.body, 'volume');
+      if (volume === undefined || !Number.isInteger(volume) || volume < 0 || volume > 200) {
+        res.status(400).json({ error: 'invalid_volume' });
+        return;
+      }
+      const player = client.lavalink.getPlayer(env.webGuildId);
+      if (!player) {
+        res.status(409).json({ error: 'nothing_playing' });
+        return;
+      }
+      await player.setVolume(volume);
+      res.status(204).end();
+    })();
+  });
+
+  router.post('/seek', (req, res) => {
+    void (async () => {
+      const positionMs = numberField(req.body, 'positionMs');
+      const player = client.lavalink.getPlayer(env.webGuildId);
+      if (!player || !player.queue.current) {
+        res.status(409).json({ error: 'nothing_playing' });
+        return;
+      }
+      if (player.queue.current.info.isStream) {
+        res.status(409).json({ error: 'not_seekable' });
+        return;
+      }
+      if (positionMs === undefined || positionMs < 0) {
+        res.status(400).json({ error: 'invalid_position' });
+        return;
+      }
+      await player.seek(positionMs);
+      res.status(204).end();
+    })();
+  });
+
+  router.post('/leave', (req, res) => {
+    void (async () => {
+      const player = client.lavalink.getPlayer(env.webGuildId);
+      if (!player) {
+        res.status(409).json({ error: 'not_connected' });
+        return;
+      }
+      await player.destroy();
       res.status(204).end();
     })();
   });

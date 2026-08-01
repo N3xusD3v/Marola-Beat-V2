@@ -11,3 +11,22 @@ export function formatDuration(ms: number): string {
   }
   return `${minutes}:${paddedSeconds}`;
 }
+
+/**
+ * Interpreta `"90"` (segundos), `"1:30"` (mm:ss) ou `"1:02:03"` (h:mm:ss) como milissegundos.
+ * Retorna `null` se o formato não for reconhecido.
+ */
+export function parseTimeToMs(input: string): number | null {
+  const trimmed = input.trim();
+  if (/^\d+$/.test(trimmed)) return Number(trimmed) * 1000;
+
+  const parts = trimmed.split(':');
+  if (parts.length < 2 || parts.length > 3 || parts.some((part) => !/^\d+$/.test(part))) return null;
+
+  const numbers = parts.map(Number);
+  let seconds = 0;
+  for (const part of numbers) {
+    seconds = seconds * 60 + part;
+  }
+  return seconds * 1000;
+}

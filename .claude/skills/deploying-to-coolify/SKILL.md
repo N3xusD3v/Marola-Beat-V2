@@ -18,8 +18,10 @@ This is the quick-reference version.
   integration. Auto Deploy on push to `main` should be enabled on the resource.
 - Required runtime environment variables in Coolify: `DISCORD_TOKEN`, `DISCORD_APP_ID`,
   `DISCORD_CLIENT_SECRET`, `WEB_GUILD_ID`, `PUBLIC_URL`, `SESSION_SECRET`, `LAVALINK_PASSWORD`
-  (shared secret between `bot` and `lavalink`, any random string — `openssl rand -hex 32`).
-  Optional: `GUILD_ID` (leave empty in production for global commands), `LOG_LEVEL`.
+  (shared secret between `bot` and `lavalink`, any random string — `openssl rand -hex 32`),
+  `YOUTUBE_OAUTH_REFRESH_TOKEN` (obtained via a one-time device-code flow after first deploy, see
+  DEPLOYMENT.md's "Autenticação OAuth do YouTube"). Optional: `GUILD_ID` (leave empty in
+  production for global commands), `LOG_LEVEL`.
 - `restart: unless-stopped` is already set in `docker-compose.yml` — both containers come back
   after a crash or host reboot automatically.
 
@@ -54,3 +56,16 @@ bug.
   version when YouTube changes its client detection; check
   [lavalink-devs/youtube-source releases](https://github.com/lavalink-devs/youtube-source/releases)
   for a newer version and bump it in both the `plugins.youtube` dependency line.
+- YouTube searches failing with `Invalid status code for search response: 400` even though the
+  plugin loaded fine → the host (Hetzner, named explicitly in the plugin's own docs) is being
+  IP-blocked by YouTube for search requests. Fixed by OAuth — see `YOUTUBE_OAUTH_REFRESH_TOKEN`
+  above.
+- `docker-compose.yml`'s single-file bind mounts (`./lavalink/application.yml:...`) can silently
+  become an **empty directory** on the host instead of picking up the file's content, if Coolify's
+  persistent `/data/coolify/applications/<uuid>/...` copy of that path was created before the
+  source file existed (this happened on this project's very first Lavalink deploy). Symptom: the
+  service runs and passes healthchecks but silently ignores the whole config file — check with
+  `cat /data/coolify/applications/<uuid>/lavalink/application.yml` on the host; if it says "Is a
+  directory", `rmdir` it, recreate it as a real file with the correct content, then trigger a full
+  **Redeploy** from Coolify's UI (a bare `docker restart` is not reliable here — it can leave the
+  container exited instead of relaunching it; a redeploy recreates the container cleanly).

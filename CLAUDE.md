@@ -21,6 +21,7 @@ npm run typecheck    # tsc --noEmit
 npm run lint          # eslint .
 npm run format         # prettier --write .
 npm run build           # compila para dist/
+npm start                # roda a build de produção (dist/index.js) — usado pelo Dockerfile
 ```
 
 Sempre rode `typecheck`, `lint` e `build` antes de considerar uma mudança pronta — o CI roda os
@@ -35,7 +36,8 @@ três em todo PR e falha o merge se algum quebrar.
   guild atual; use-o em vez de chamar `client.lavalink.getPlayer()` diretamente.
 - `src/lib/embeds.ts` — cor da marca (`BRAND_COLOR`) e builder de embed de faixa (`trackEmbed`).
 - `src/lib/format.ts` — `formatDuration(ms)`, já que `track.info.duration` do lavalink-client vem
-  em milissegundos (número), não como string formatada.
+  em milissegundos (número), não como string formatada; `parseTimeToMs(input)` faz o caminho
+  inverso pro `/seek` (aceita segundos crus ou `mm:ss`/`hh:mm:ss`).
 - `src/lib/lavalink.ts` — cria e configura o `LavalinkManager` (nodes, listeners de eventos).
   `src/index.ts` conecta o resto da fiação: encaminha o evento legado `raw` do `Client` do
   discord.js pro `sendRawData()` do manager (obrigatório — sem isso o Lavalink nunca recebe
@@ -54,7 +56,8 @@ três em todo PR e falha o merge se algum quebrar.
   logout, `middleware.ts` (`requireVoiceMember`) exige sessão válida **e** estar no momento no
   mesmo canal de voz que o bot (via `guild.voiceStates.cache`, não a API REST — é mais rápido e
   não precisa de escopo `guilds`/`guilds.members.read`), `queue-routes.ts` expõe
-  `GET/POST /api/queue*`. Reordenar só troca posições adjacentes: `player.queue` não tem um método
+  `GET/POST /api/queue*` (`add`, `move`, `remove`, `clear`, `pause`, `skip`, `previous`, `volume`,
+  `seek`, `leave`). Reordenar só troca posições adjacentes: `player.queue` não tem um método
   `swap`, então isso é feito com `player.queue.splice(i, 2, [trackAtI+1, trackAtI])`.
 - `public/` — frontend do painel, JS puro sem build step (fora do projeto TypeScript,
   ignorado pelo ESLint/tsconfig de propósito). Se adicionar algo aqui, não assuma tipos do `src/`.
@@ -80,6 +83,13 @@ três em todo PR e falha o merge se algum quebrar.
   mas como `useUnresolvedData` nunca é habilitado no `LavalinkManager` (`src/lib/lavalink.ts`), o
   resultado real em runtime é sempre `SearchResult` — faça `as SearchResult` explícito depois do
   `await` em vez de tratar o caso `UnresolvedSearchResult` (ver `src/commands/play.ts`).
+- `player.playing` vira `false` enquanto a faixa está pausada (`player.playing = !paused`
+  internamente) — nunca guarde uma rota/comando checando só `player.playing`; use
+  `player.queue.current` pra saber se há uma faixa carregada independente do estado de pausa (ver
+  as rotas `pause`/`skip`/`seek` em `queue-routes.ts`).
+- Faixa anterior: não existe `player.previous()`. O padrão é
+  `const previous = await player.queue.shiftPrevious(); await player.play({ clientTrack: previous })`
+  (ver `/previous` em `queue-routes.ts` e `src/commands/previous.ts`).
 
 ## Deploy
 

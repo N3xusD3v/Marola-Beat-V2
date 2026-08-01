@@ -17,7 +17,15 @@ lavalink:
       vimeo: true
       http: false
       local: false
-    bufferDurationMs: 400
+    # bufferDurationMs mais alto que o padrão (400) dá mais margem contra picos de latência de
+    # agendamento da CPU — o host roda vários outros stacks Docker além deste, então contenção de
+    # CPU é esperada. opusEncodingQuality abaixo do máximo (10) reduz o custo de CPU por frame de
+    # áudio codificado (perda de qualidade imperceptível nesse nível, já que a saída do Discord é
+    # comprimida de qualquer forma). nonAllocatingFrameBuffer reduz alocações por frame, o que
+    # reduz pressão de GC — outra fonte comum de stutter em áudio em tempo real.
+    bufferDurationMs: 1000
+    opusEncodingQuality: 8
+    nonAllocatingFrameBuffer: true
     frameBufferDurationMs: 5000
     youtubePlaylistLoadLimit: 6
     playerUpdateInterval: 5
@@ -38,6 +46,16 @@ plugins:
       - ANDROID_VR
       - WEB
       - WEBEMBEDDED
+    # Requisições de busca vindas do IP do Hetzner são bloqueadas pelo YouTube ("Invalid status
+    # code for search response: 400" / "sign in to confirm you're not a bot") — problema conhecido
+    # e documentado para hosts de datacenter. OAuth (login com uma conta Google, burner, não a
+    # principal — ver aviso do próprio plugin no log) contorna isso. O refresh token NÃO é lido
+    # daqui via placeholder — essa seção de plugin não passa pela resolução `${...}` do Spring
+    # (confirmado rodando em produção: o valor ficava literal e disparava o device-code flow de
+    # novo a cada deploy). É passado direto como env var Spring-relaxed-binding
+    # PLUGINS_YOUTUBE_OAUTH_REFRESHTOKEN no docker-compose.yml.
+    oauth:
+      enabled: true
 
 metrics:
   prometheus:
@@ -50,6 +68,9 @@ logging:
   level:
     root: INFO
     lavalink: INFO
+    # Sem isso, o prompt do device-code flow do OAuth (URL + código pra colar em
+    # google.com/device) não aparece no log — é a única forma de completar o login.
+    dev.lavalink.youtube.http.YoutubeOauth2Handler: INFO
   logback:
     rollingpolicy:
       max-file-size: 50MB
