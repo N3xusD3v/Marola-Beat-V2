@@ -602,7 +602,6 @@ main {
   white-space: nowrap;
 }
 
-.volume-control:hover .volume-popover,
 .volume-control:focus-within .volume-popover,
 .volume-control.is-open .volume-popover {
   opacity: 1;
