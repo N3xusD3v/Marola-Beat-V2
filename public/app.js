@@ -10,6 +10,51 @@ const ERROR_MESSAGES = {
 
 const POLL_INTERVAL_MS = 4000;
 
+// Paths do Lucide (https://lucide.dev, licença ISC) — sem outer <svg>, ver icon().
+const ICON_PATHS = {
+  play: '<path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z" />',
+  pause:
+    '<rect x="14" y="3" width="5" height="18" rx="1" /><rect x="5" y="3" width="5" height="18" rx="1" />',
+  'skip-back':
+    '<path d="M17.971 4.285A2 2 0 0 1 21 6v12a2 2 0 0 1-3.029 1.715l-9.997-5.998a2 2 0 0 1-.003-3.432z" /><path d="M3 20V4" />',
+  'skip-forward':
+    '<path d="M21 4v16" /><path d="M6.029 4.285A2 2 0 0 0 3 6v12a2 2 0 0 0 3.029 1.715l9.997-5.998a2 2 0 0 0 .003-3.432z" />',
+  'log-out':
+    '<path d="m16 17 5-5-5-5" /><path d="M21 12H9" /><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />',
+  'log-in':
+    '<path d="m10 17 5-5-5-5" /><path d="M15 12H3" /><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />',
+  'volume-2':
+    '<path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" /><path d="M16 9a5 5 0 0 1 0 6" /><path d="M19.364 18.364a9 9 0 0 0 0-12.728" />',
+  'volume-x':
+    '<path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" /><line x1="22" x2="16" y1="9" y2="15" /><line x1="16" x2="22" y1="9" y2="15" />',
+  x: '<path d="M18 6 6 18" /><path d="m6 6 12 12" />',
+  'chevron-up': '<path d="m18 15-6-6-6 6" />',
+  'chevron-down': '<path d="m6 9 6 6 6-6" />',
+  'trash-2':
+    '<path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />',
+  'music-4':
+    '<path d="M9 18V5l12-2v13" /><path d="m9 9 12-2" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />',
+  'loader-circle': '<path d="M21 12a9 9 0 1 1-6.219-8.56" />',
+  'disc-3':
+    '<circle cx="12" cy="12" r="10" /><path d="M6 12c0-1.7.7-3.2 1.8-4.2" /><circle cx="12" cy="12" r="2" /><path d="M18 12c0 1.7-.7 3.2-1.8 4.2" />',
+};
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+function icon(name, extraClass) {
+  const wrapper = document.createElementNS(SVG_NS, 'svg');
+  wrapper.setAttribute('viewBox', '0 0 24 24');
+  wrapper.setAttribute('fill', 'none');
+  wrapper.setAttribute('stroke', 'currentColor');
+  wrapper.setAttribute('stroke-width', '2');
+  wrapper.setAttribute('stroke-linecap', 'round');
+  wrapper.setAttribute('stroke-linejoin', 'round');
+  wrapper.setAttribute('aria-hidden', 'true');
+  wrapper.setAttribute('class', extraClass ? `icon ${extraClass}` : 'icon');
+  wrapper.innerHTML = ICON_PATHS[name] ?? '';
+  return wrapper;
+}
+
 let pollTimer = null;
 let tickTimer = null;
 let lastData = null;
@@ -41,9 +86,13 @@ function renderLogin() {
   userBox.textContent = '';
   app.textContent = '';
   const box = el('div', 'card login-card');
+  box.appendChild(icon('music-4', 'login-mark'));
+  box.appendChild(el('h2', null, 'Marola Beat'));
   box.appendChild(el('p', null, 'Entre com sua conta do Discord para gerenciar a fila.'));
-  const link = el('a', 'btn btn-primary', 'Entrar com Discord');
+  const link = el('a', 'btn btn-primary');
   link.href = '/auth/login';
+  link.appendChild(icon('log-in'));
+  link.appendChild(el('span', null, 'Entrar com Discord'));
   box.appendChild(link);
   app.appendChild(box);
 }
@@ -65,8 +114,12 @@ function renderUser(user) {
   img.alt = '';
   img.className = 'avatar';
   userBox.appendChild(img);
-  userBox.appendChild(el('span', null, user.username));
-  const logout = el('button', 'btn btn-link', 'Sair');
+  userBox.appendChild(el('span', 'username', user.username));
+  const logout = el('button', 'icon-btn icon-btn-ghost');
+  logout.type = 'button';
+  logout.title = 'Sair da conta';
+  logout.setAttribute('aria-label', 'Sair da conta');
+  logout.appendChild(icon('log-out'));
   logout.addEventListener('click', async () => {
     await api('/auth/logout', { method: 'POST' });
     stopPolling();
@@ -75,10 +128,12 @@ function renderUser(user) {
   userBox.appendChild(logout);
 }
 
-function actionButton(label, title, onClick, disabled) {
-  const btn = el('button', 'icon-btn', label);
+function actionButton(iconName, title, onClick, disabled) {
+  const btn = el('button', 'icon-btn');
   btn.type = 'button';
   btn.title = title;
+  btn.setAttribute('aria-label', title);
+  btn.appendChild(icon(iconName));
   btn.disabled = Boolean(disabled);
   btn.addEventListener('click', (event) => {
     event.stopPropagation();
@@ -107,9 +162,9 @@ function trackRow(track, index, { onUp, onDown, onRemove, isFirst, isLast } = {}
 
   if (onUp || onDown || onRemove) {
     const actions = el('div', 'track-actions');
-    if (onUp) actions.appendChild(actionButton('▲', 'Mover para cima', onUp, isFirst));
-    if (onDown) actions.appendChild(actionButton('▼', 'Mover para baixo', onDown, isLast));
-    if (onRemove) actions.appendChild(actionButton('✕', 'Remover da fila', onRemove));
+    if (onUp) actions.appendChild(actionButton('chevron-up', 'Mover para cima', onUp, isFirst));
+    if (onDown) actions.appendChild(actionButton('chevron-down', 'Mover para baixo', onDown, isLast));
+    if (onRemove) actions.appendChild(actionButton('x', 'Remover da fila', onRemove));
     row.appendChild(actions);
   }
 
@@ -167,10 +222,15 @@ function setVolume(volume) {
 
 function renderPlayer(data) {
   const card = el('section', 'card now-playing');
-  card.appendChild(el('h2', null, 'Tocando agora'));
+  const header = el('div', 'card-header');
+  header.appendChild(el('h2', null, 'Tocando agora'));
+  card.appendChild(header);
 
   if (!data.current) {
-    card.appendChild(el('p', 'empty', 'Nada tocando no momento.'));
+    const empty = el('div', 'empty-state');
+    empty.appendChild(icon('disc-3', 'empty-icon'));
+    empty.appendChild(el('p', 'empty', 'Nada tocando no momento.'));
+    card.appendChild(empty);
     return card;
   }
 
@@ -178,11 +238,13 @@ function renderPlayer(data) {
   const body = el('div', 'player-body');
 
   if (track.thumbnail) {
+    const thumbWrap = el('div', `thumb-wrap${data.playing && !data.paused ? ' is-spinning' : ''}`);
     const thumb = document.createElement('img');
     thumb.src = track.thumbnail;
     thumb.alt = '';
     thumb.className = 'thumb thumb-large';
-    body.appendChild(thumb);
+    thumbWrap.appendChild(thumb);
+    body.appendChild(thumbWrap);
   }
 
   const info = el('div', 'track-info');
@@ -208,7 +270,9 @@ function renderPlayer(data) {
     times.appendChild(el('span', null, track.duration));
     info.appendChild(times);
   } else {
-    info.appendChild(el('div', 'progress-times', 'AO VIVO'));
+    const live = el('div', 'progress-times');
+    live.appendChild(el('span', 'live-badge', 'AO VIVO'));
+    info.appendChild(live);
   }
 
   body.appendChild(info);
@@ -216,37 +280,53 @@ function renderPlayer(data) {
 
   const controls = el('div', 'player-controls');
 
-  const prevBtn = el('button', 'btn btn-secondary', '⏮ Anterior');
+  const prevBtn = el('button', 'btn btn-secondary');
   prevBtn.type = 'button';
   prevBtn.disabled = !data.hasPrevious;
+  prevBtn.title = 'Faixa anterior';
+  prevBtn.setAttribute('aria-label', 'Faixa anterior');
+  prevBtn.appendChild(icon('skip-back'));
   prevBtn.addEventListener('click', () => void previousTrack());
   controls.appendChild(prevBtn);
 
-  const pauseBtn = el('button', 'btn btn-primary', data.paused ? '▶ Retomar' : '⏸ Pausar');
+  const pauseBtn = el('button', 'btn btn-primary');
   pauseBtn.type = 'button';
+  const pauseLabel = data.paused ? 'Retomar' : 'Pausar';
+  pauseBtn.title = pauseLabel;
+  pauseBtn.setAttribute('aria-label', pauseLabel);
+  pauseBtn.appendChild(icon(data.paused ? 'play' : 'pause'));
+  pauseBtn.appendChild(el('span', null, pauseLabel));
   pauseBtn.addEventListener('click', () => void togglePause());
   controls.appendChild(pauseBtn);
 
-  const skipBtn = el('button', 'btn btn-secondary', '⏭ Pular');
+  const skipBtn = el('button', 'btn btn-secondary');
   skipBtn.type = 'button';
+  skipBtn.title = 'Pular faixa';
+  skipBtn.setAttribute('aria-label', 'Pular faixa');
+  skipBtn.appendChild(icon('skip-forward'));
   skipBtn.addEventListener('click', () => void skipTrack());
   controls.appendChild(skipBtn);
 
-  const leaveBtn = el('button', 'btn btn-link', '👋 Sair do canal');
+  const leaveBtn = el('button', 'btn btn-link');
   leaveBtn.type = 'button';
+  leaveBtn.title = 'Sair do canal';
+  leaveBtn.setAttribute('aria-label', 'Sair do canal');
+  leaveBtn.appendChild(icon('log-out'));
+  leaveBtn.appendChild(el('span', null, 'Sair do canal'));
   leaveBtn.addEventListener('click', () => void leaveChannel());
   controls.appendChild(leaveBtn);
 
   card.appendChild(controls);
 
   const volumeRow = el('div', 'volume-row');
-  volumeRow.appendChild(el('span', 'volume-label', '🔊'));
+  volumeRow.appendChild(icon('volume-2', 'volume-icon'));
   const volumeInput = document.createElement('input');
   volumeInput.type = 'range';
   volumeInput.min = '0';
   volumeInput.max = '200';
   volumeInput.value = String(data.volume ?? 100);
   volumeInput.className = 'volume-slider';
+  volumeInput.setAttribute('aria-label', 'Volume');
   const volumeValue = el('span', 'volume-label', `${data.volume ?? 100}%`);
   volumeInput.addEventListener('input', () => {
     volumeValue.textContent = `${volumeInput.value}%`;
@@ -315,19 +395,24 @@ function renderQueue(data) {
   input.placeholder = 'Nome da música ou link (YouTube, SoundCloud...)';
   input.required = true;
   input.maxLength = 300;
-  const submit = el('button', 'btn btn-primary', 'Adicionar');
+  const submit = el('button', 'btn btn-primary btn-icon-only');
   submit.type = 'submit';
+  submit.title = 'Adicionar à fila';
+  submit.setAttribute('aria-label', 'Adicionar à fila');
+  submit.appendChild(icon('plus'));
   form.appendChild(input);
   form.appendChild(submit);
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     void (async () => {
       submit.disabled = true;
+      submit.classList.add('is-loading');
       const res = await api('/api/queue/add', {
         method: 'POST',
         body: JSON.stringify({ query: input.value }),
       });
       submit.disabled = false;
+      submit.classList.remove('is-loading');
       if (res.ok) {
         input.value = '';
         await loadQueue();
@@ -339,10 +424,13 @@ function renderQueue(data) {
 
   const queueSection = el('section', 'card queue-list');
   const queueHeader = el('div', 'queue-header');
-  queueHeader.appendChild(el('h2', null, `Fila (${data.tracks.length})`));
+  queueHeader.appendChild(el('h2', null, 'Fila'));
+  queueHeader.appendChild(el('span', 'queue-count', String(data.tracks.length)));
   if (data.tracks.length > 0) {
-    const clearBtn = el('button', 'btn btn-link', 'Limpar fila');
+    const clearBtn = el('button', 'btn btn-link');
     clearBtn.type = 'button';
+    clearBtn.appendChild(icon('trash-2'));
+    clearBtn.appendChild(el('span', null, 'Limpar'));
     clearBtn.addEventListener('click', () => void clearQueue());
     queueHeader.appendChild(clearBtn);
   }
