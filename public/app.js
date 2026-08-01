@@ -27,6 +27,7 @@ const ICON_PATHS = {
     '<path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" /><path d="M16 9a5 5 0 0 1 0 6" /><path d="M19.364 18.364a9 9 0 0 0 0-12.728" />',
   'volume-x':
     '<path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" /><line x1="22" x2="16" y1="9" y2="15" /><line x1="16" x2="22" y1="9" y2="15" />',
+  plus: '<path d="M5 12h14" /><path d="M12 5v14" />',
   x: '<path d="M18 6 6 18" /><path d="m6 6 12 12" />',
   'chevron-up': '<path d="m18 15-6-6-6 6" />',
   'chevron-down': '<path d="m6 9 6 6 6-6" />',
@@ -222,11 +223,11 @@ function setVolume(volume) {
 
 function renderPlayer(data) {
   const card = el('section', 'card now-playing');
-  const header = el('div', 'card-header');
-  header.appendChild(el('h2', null, 'Tocando agora'));
-  card.appendChild(header);
 
   if (!data.current) {
+    const header = el('div', 'card-header');
+    header.appendChild(el('h2', null, 'Tocando agora'));
+    card.appendChild(header);
     const empty = el('div', 'empty-state');
     empty.appendChild(icon('disc-3', 'empty-icon'));
     empty.appendChild(el('p', 'empty', 'Nada tocando no momento.'));
@@ -235,17 +236,15 @@ function renderPlayer(data) {
   }
 
   const track = data.current;
-  const body = el('div', 'player-body');
+  card.classList.add('has-cover');
 
-  if (track.thumbnail) {
-    const thumbWrap = el('div', `thumb-wrap${data.playing && !data.paused ? ' is-spinning' : ''}`);
-    const thumb = document.createElement('img');
-    thumb.src = track.thumbnail;
-    thumb.alt = '';
-    thumb.className = 'thumb thumb-large';
-    thumbWrap.appendChild(thumb);
-    body.appendChild(thumbWrap);
-  }
+  const coverBg = el('div', 'cover-bg');
+  if (track.thumbnail) coverBg.style.backgroundImage = `url("${track.thumbnail}")`;
+  card.appendChild(coverBg);
+  card.appendChild(el('div', 'cover-scrim'));
+
+  const eyebrow = el('div', 'now-playing-eyebrow', 'Tocando agora');
+  card.appendChild(eyebrow);
 
   const info = el('div', 'track-info');
   info.appendChild(el('div', 'track-title', track.title));
@@ -275,12 +274,11 @@ function renderPlayer(data) {
     info.appendChild(live);
   }
 
-  body.appendChild(info);
-  card.appendChild(body);
+  card.appendChild(info);
 
   const controls = el('div', 'player-controls');
 
-  const prevBtn = el('button', 'btn btn-secondary');
+  const prevBtn = el('button', 'btn-transport');
   prevBtn.type = 'button';
   prevBtn.disabled = !data.hasPrevious;
   prevBtn.title = 'Faixa anterior';
@@ -289,32 +287,22 @@ function renderPlayer(data) {
   prevBtn.addEventListener('click', () => void previousTrack());
   controls.appendChild(prevBtn);
 
-  const pauseBtn = el('button', 'btn btn-primary');
+  const pauseBtn = el('button', 'btn-play');
   pauseBtn.type = 'button';
   const pauseLabel = data.paused ? 'Retomar' : 'Pausar';
   pauseBtn.title = pauseLabel;
   pauseBtn.setAttribute('aria-label', pauseLabel);
   pauseBtn.appendChild(icon(data.paused ? 'play' : 'pause'));
-  pauseBtn.appendChild(el('span', null, pauseLabel));
   pauseBtn.addEventListener('click', () => void togglePause());
   controls.appendChild(pauseBtn);
 
-  const skipBtn = el('button', 'btn btn-secondary');
+  const skipBtn = el('button', 'btn-transport');
   skipBtn.type = 'button';
   skipBtn.title = 'Pular faixa';
   skipBtn.setAttribute('aria-label', 'Pular faixa');
   skipBtn.appendChild(icon('skip-forward'));
   skipBtn.addEventListener('click', () => void skipTrack());
   controls.appendChild(skipBtn);
-
-  const leaveBtn = el('button', 'btn btn-link');
-  leaveBtn.type = 'button';
-  leaveBtn.title = 'Sair do canal';
-  leaveBtn.setAttribute('aria-label', 'Sair do canal');
-  leaveBtn.appendChild(icon('log-out'));
-  leaveBtn.appendChild(el('span', null, 'Sair do canal'));
-  leaveBtn.addEventListener('click', () => void leaveChannel());
-  controls.appendChild(leaveBtn);
 
   card.appendChild(controls);
 
@@ -334,6 +322,15 @@ function renderPlayer(data) {
   });
   volumeRow.appendChild(volumeInput);
   volumeRow.appendChild(volumeValue);
+
+  const leaveBtn = el('button', 'btn-leave');
+  leaveBtn.type = 'button';
+  leaveBtn.title = 'Sair do canal';
+  leaveBtn.setAttribute('aria-label', 'Sair do canal');
+  leaveBtn.appendChild(icon('log-out'));
+  leaveBtn.addEventListener('click', () => void leaveChannel());
+  volumeRow.appendChild(leaveBtn);
+
   card.appendChild(volumeRow);
 
   return card;
