@@ -1,9 +1,18 @@
 {
   "name": "marola-beat",
   "version": "2.1.0",
+  "private": true,
   "type": "module",
   "description": "Bot de música open source para Discord, construído com discord.js, Lavalink e TypeScript.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/N3xusD3v/Marola-Beat-V2.git"
+  },
+  "bugs": {
+    "url": "https://github.com/N3xusD3v/Marola-Beat-V2/issues"
+  },
+  "homepage": "https://github.com/N3xusD3v/Marola-Beat-V2#readme",
   "engines": {
     "node": ">=22"
   },

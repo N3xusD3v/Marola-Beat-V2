@@ -21,6 +21,7 @@ npm run typecheck    # tsc --noEmit
 npm run lint          # eslint .
 npm run format         # prettier --write .
 npm run build           # compila para dist/
+npm start                # roda a build de produção (dist/index.js) — usado pelo Dockerfile
 ```
 
 Sempre rode `typecheck`, `lint` e `build` antes de considerar uma mudança pronta — o CI roda os

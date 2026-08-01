@@ -283,7 +283,11 @@ async function loadQueue() {
   const activeInput = document.querySelector('.add-track input');
   const preservedInput =
     activeInput instanceof HTMLInputElement && document.activeElement === activeInput
-      ? { value: activeInput.value, selectionStart: activeInput.selectionStart, selectionEnd: activeInput.selectionEnd }
+      ? {
+          value: activeInput.value,
+          selectionStart: activeInput.selectionStart,
+          selectionEnd: activeInput.selectionEnd,
+        }
       : null;
 
   renderQueue(data);
