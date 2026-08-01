@@ -17,9 +17,17 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 - Autenticação OAuth do YouTube (`youtube-source` plugin) para contornar bloqueios de busca do
   YouTube em IPs de datacenter — veja "Autenticação OAuth do YouTube" em
   [DEPLOYMENT.md](DEPLOYMENT.md).
+- `SECURITY.md` (política de disclosure de vulnerabilidades) e `CODE_OF_CONDUCT.md` (Contributor
+  Covenant).
+- `public/favicon.svg` para o painel web (não existia nenhum antes).
 
 ### Alterado
 
+- Painel web: redesign visual completo — ícones SVG inline do [Lucide](https://lucide.dev) no
+  lugar de emojis, tema dark glass (`backdrop-filter`, accent violeta→ciano em vez do verde do
+  Spotify), micro-interações e suporte a `prefers-reduced-motion`. Sem mudança de comportamento ou
+  de endpoints, e sem build step novo.
+- Badges do README (Conventional Commits, Prettier, versão do discord.js, PRs Welcome).
 - **Breaking:** migração de `discord-player` (engine de voz própria via `discord-voip`) para
   [Lavalink](https://lavalink.dev) v4 (via `lavalink-client`), depois de conexões de voz feitas
   direto do processo do bot se mostrarem pouco confiáveis em produção. A conexão UDP com o Discord
