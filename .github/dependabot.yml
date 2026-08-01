@@ -21,6 +21,12 @@ updates:
     open-pull-requests-limit: 10
     commit-message:
       prefix: 'chore(deps)'
+    ignore:
+      # TypeScript está fixado em ^5.9 porque typescript-eslint ainda não suporta TS 7 (ver
+      # CLAUDE.md > Convenções). Não deixar o Dependabot sugerir esse major sozinho — precisa de
+      # checagem manual de compatibilidade primeiro.
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: 'github-actions'
     directory: '/'
