@@ -49,23 +49,23 @@ Configuração e variáveis de ambiente necessárias em [DEPLOYMENT.md](DEPLOYME
 
 ## 🛠️ Comandos disponíveis
 
-| Comando       | Descrição                                    |
-| ------------- | -------------------------------------------- |
-| `/play`       | Toca uma música por busca ou URL             |
-| `/skip`       | Pula a faixa atual                           |
-| `/stop`       | Para a reprodução e limpa a fila             |
-| `/queue`      | Mostra a fila de reprodução                  |
-| `/pause`      | Pausa a música atual                         |
-| `/resume`     | Retoma a música pausada                      |
-| `/nowplaying` | Mostra a faixa tocando no momento            |
-| `/shuffle`    | Embaralha as músicas da fila                 |
-| `/loop`       | Define o modo de repetição (off/track/queue) |
-| `/volume`     | Ajusta o volume da reprodução (0-100%)       |
-| `/remove`     | Remove uma música da fila pela posição       |
-| `/clear`      | Remove todas as músicas da fila              |
-| `/previous`   | Volta para a faixa anterior                  |
-| `/seek`       | Pula para um momento específico da faixa     |
-| `/leave`      | Desconecta o bot do canal de voz             |
+| Comando       | Descrição                                                     |
+| ------------- | ------------------------------------------------------------- |
+| `/play`       | Toca uma música por busca ou URL (opção `topo` toca a seguir) |
+| `/skip`       | Pula a faixa atual                                            |
+| `/stop`       | Para a reprodução e limpa a fila                              |
+| `/queue`      | Mostra a fila de reprodução                                   |
+| `/pause`      | Pausa a música atual                                          |
+| `/resume`     | Retoma a música pausada                                       |
+| `/nowplaying` | Mostra a faixa tocando no momento                             |
+| `/shuffle`    | Embaralha as músicas da fila                                  |
+| `/loop`       | Define o modo de repetição (off/track/queue)                  |
+| `/volume`     | Ajusta o volume da reprodução (0-100%)                        |
+| `/remove`     | Remove uma música da fila pela posição                        |
+| `/clear`      | Remove todas as músicas da fila                               |
+| `/previous`   | Volta para a faixa anterior                                   |
+| `/seek`       | Pula para um momento específico da faixa                      |
+| `/leave`      | Desconecta o bot do canal de voz                              |
 
 ## 🚀 Começando
 

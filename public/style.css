@@ -162,7 +162,34 @@ main {
 
 .login-card p {
   color: var(--text-muted);
-  margin: 0 0 1.5rem;
+  margin: 0 0 1.4rem;
+}
+
+.login-features {
+  list-style: none;
+  margin: 0 0 1.6rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  text-align: left;
+}
+
+.login-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.35;
+}
+
+.login-features .icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .btn {
@@ -295,6 +322,31 @@ main {
   border-color: var(--border);
 }
 
+.track-row-next {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: inset 3px 0 0 #fff;
+  padding-left: 0.7rem;
+}
+
+.track-row-next:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.track-row-next .thumb {
+  width: 54px;
+  height: 54px;
+}
+
+.track-next-label {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 0.15rem;
+}
+
 .thumb {
   width: 46px;
   height: 46px;
@@ -303,6 +355,9 @@ main {
   flex-shrink: 0;
   border: 1px solid var(--border);
   filter: grayscale(1);
+  transition:
+    width 0.15s ease,
+    height 0.15s ease;
 }
 
 .track-actions {
@@ -494,25 +549,76 @@ main {
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.7rem 1.4rem 1.2rem;
+  justify-content: center;
+  gap: 1.4rem;
+  padding: 0.6rem 1.4rem 1.1rem;
 }
 
-.volume-icon {
-  width: 14px;
-  height: 14px;
-  color: rgba(255, 255, 255, 0.4);
+.volume-control {
+  position: relative;
+}
+
+.volume-toggle {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem;
+  transition: color 0.15s ease;
+}
+
+.volume-toggle .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.volume-control:hover .volume-toggle,
+.volume-control.is-open .volume-toggle {
+  color: #fff;
+}
+
+.volume-popover {
+  position: absolute;
+  right: calc(100% + 0.5rem);
+  top: 50%;
+  transform: translateY(-50%) translateX(6px);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(20, 20, 20, 0.92);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.5rem 0.8rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+  white-space: nowrap;
+}
+
+.volume-control:focus-within .volume-popover,
+.volume-control.is-open .volume-popover {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%) translateX(0);
 }
 
 .volume-label {
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.55);
   min-width: 2.2rem;
   font-variant-numeric: tabular-nums;
 }
 
 .volume-slider {
-  flex: 1;
+  width: 110px;
   height: 14px;
   margin: 0;
   background: transparent;
@@ -719,6 +825,7 @@ main {
   text-align: center;
   color: var(--text-muted);
   padding: 3rem 0;
+  animation: pulse 1.6s ease-in-out infinite;
 }
 
 @keyframes spin {

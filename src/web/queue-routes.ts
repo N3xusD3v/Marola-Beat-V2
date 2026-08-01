@@ -48,6 +48,11 @@ function numberField(body: unknown, field: string): number | undefined {
   return typeof value === 'number' ? value : undefined;
 }
 
+function booleanField(body: unknown, field: string): boolean {
+  if (typeof body !== 'object' || body === null) return false;
+  return (body as Record<string, unknown>)[field] === true;
+}
+
 export function createQueueRouter(client: BotClient) {
   const router = Router();
   router.use(requireVoiceMember(client));
@@ -72,6 +77,7 @@ export function createQueueRouter(client: BotClient) {
         res.status(400).json({ error: 'invalid_query' });
         return;
       }
+      const playNext = booleanField(req.body, 'playNext');
 
       const guild = client.guilds.cache.get(env.webGuildId);
       const voiceChannelId = req.voice!.voiceChannelId;
@@ -106,9 +112,9 @@ export function createQueueRouter(client: BotClient) {
         }
 
         if (result.loadType === 'playlist') {
-          await player.queue.add(result.tracks);
+          await player.queue.add(result.tracks, playNext ? 0 : undefined);
         } else {
-          await player.queue.add(firstTrack);
+          await player.queue.add(firstTrack, playNext ? 0 : undefined);
         }
 
         if (!player.playing && !player.paused) await player.play();

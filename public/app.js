@@ -38,20 +38,38 @@ const ICON_PATHS = {
   'loader-circle': '<path d="M21 12a9 9 0 1 1-6.219-8.56" />',
   'disc-3':
     '<circle cx="12" cy="12" r="10" /><path d="M6 12c0-1.7.7-3.2 1.8-4.2" /><circle cx="12" cy="12" r="2" /><path d="M18 12c0 1.7-.7 3.2-1.8 4.2" />',
+  'list-start':
+    '<path d="M3 5h6" /><path d="M3 12h13" /><path d="M3 19h13" /><path d="m16 8-3-3 3-3" /><path d="M21 19V7a2 2 0 0 0-2-2h-6" />',
+  search: '<path d="m21 21-4.34-4.34" /><circle cx="11" cy="11" r="8" />',
+  'list-music':
+    '<path d="M16 5H3" /><path d="M11 12H3" /><path d="M11 19H3" /><path d="M21 16V5" /><circle cx="18" cy="16" r="3" />',
+  'shield-check':
+    '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /><path d="m9 12 2 2 4-4" />',
 };
+
+// Marca oficial do Discord (https://github.com/simple-icons/simple-icons, CC0) — path único
+// preenchido (fill), não contorno como os ícones Lucide acima; tratado como caso especial
+// dentro de icon() (nome 'discord').
+const DISCORD_MARK_PATH =
+  '<path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z" />';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 function icon(name, extraClass) {
   const wrapper = document.createElementNS(SVG_NS, 'svg');
   wrapper.setAttribute('viewBox', '0 0 24 24');
+  wrapper.setAttribute('aria-hidden', 'true');
+  wrapper.setAttribute('class', extraClass ? `icon ${extraClass}` : 'icon');
+  if (name === 'discord') {
+    wrapper.setAttribute('fill', 'currentColor');
+    wrapper.innerHTML = DISCORD_MARK_PATH;
+    return wrapper;
+  }
   wrapper.setAttribute('fill', 'none');
   wrapper.setAttribute('stroke', 'currentColor');
   wrapper.setAttribute('stroke-width', '2');
   wrapper.setAttribute('stroke-linecap', 'round');
   wrapper.setAttribute('stroke-linejoin', 'round');
-  wrapper.setAttribute('aria-hidden', 'true');
-  wrapper.setAttribute('class', extraClass ? `icon ${extraClass}` : 'icon');
   wrapper.innerHTML = ICON_PATHS[name] ?? '';
   return wrapper;
 }
@@ -60,6 +78,10 @@ let pollTimer = null;
 let tickTimer = null;
 let lastData = null;
 let localPositionMs = 0;
+// renderQueue() reconstrói o DOM inteiro a cada poll (ver loadQueue()), então sem isso o popover
+// de volume fecharia sozinho a cada 4s mesmo com o usuário ainda mexendo nele.
+let volumePopoverOpen = false;
+let removeVolumeOutsideListener = null;
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -83,6 +105,12 @@ function formatMs(ms) {
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 
+const LOGIN_FEATURES = [
+  { icon: 'search', text: 'Busque e adicione músicas do YouTube, SoundCloud e mais' },
+  { icon: 'list-music', text: 'Veja a fila em tempo real, reordene e pule faixas' },
+  { icon: 'shield-check', text: 'Acesso restrito a quem está no canal de voz do bot' },
+];
+
 function renderLogin() {
   userBox.textContent = '';
   app.textContent = '';
@@ -90,9 +118,19 @@ function renderLogin() {
   box.appendChild(icon('music-4', 'login-mark'));
   box.appendChild(el('h2', null, 'Marola Beat'));
   box.appendChild(el('p', null, 'Entre com sua conta do Discord para gerenciar a fila.'));
+
+  const features = el('ul', 'login-features');
+  for (const feature of LOGIN_FEATURES) {
+    const item = el('li');
+    item.appendChild(icon(feature.icon));
+    item.appendChild(el('span', null, feature.text));
+    features.appendChild(item);
+  }
+  box.appendChild(features);
+
   const link = el('a', 'btn btn-primary');
   link.href = '/auth/login';
-  link.appendChild(icon('log-in'));
+  link.appendChild(icon('discord'));
   link.appendChild(el('span', null, 'Entrar com Discord'));
   box.appendChild(link);
   app.appendChild(box);
@@ -144,7 +182,7 @@ function actionButton(iconName, title, onClick, disabled) {
 }
 
 function trackRow(track, index, { onUp, onDown, onRemove, isFirst, isLast } = {}) {
-  const row = el('li', 'track-row');
+  const row = el('li', isFirst ? 'track-row track-row-next' : 'track-row');
 
   if (track.thumbnail) {
     const thumb = document.createElement('img');
@@ -155,6 +193,7 @@ function trackRow(track, index, { onUp, onDown, onRemove, isFirst, isLast } = {}
   }
 
   const info = el('div', 'track-info');
+  if (isFirst) info.appendChild(el('div', 'track-next-label', 'A seguir'));
   info.appendChild(el('div', 'track-title', track.title));
   info.appendChild(
     el('div', 'track-meta', `${track.author} • ${track.duration} • pedido por ${track.requestedBy}`),
@@ -225,6 +264,11 @@ function renderPlayer(data) {
   const card = el('section', 'card now-playing');
 
   if (!data.current) {
+    volumePopoverOpen = false;
+    if (removeVolumeOutsideListener) {
+      removeVolumeOutsideListener();
+      removeVolumeOutsideListener = null;
+    }
     const header = el('div', 'card-header');
     header.appendChild(el('h2', null, 'Tocando agora'));
     card.appendChild(header);
@@ -307,7 +351,15 @@ function renderPlayer(data) {
   card.appendChild(controls);
 
   const volumeRow = el('div', 'volume-row');
-  volumeRow.appendChild(icon('volume-2', 'volume-icon'));
+
+  const volumeControl = el('div', 'volume-control');
+  const volumeToggle = el('button', 'volume-toggle');
+  volumeToggle.type = 'button';
+  volumeToggle.title = 'Volume';
+  volumeToggle.setAttribute('aria-label', 'Volume');
+  volumeToggle.appendChild(icon('volume-2'));
+
+  const volumePopover = el('div', 'volume-popover');
   const volumeInput = document.createElement('input');
   volumeInput.type = 'range';
   volumeInput.min = '0';
@@ -320,8 +372,40 @@ function renderPlayer(data) {
     volumeValue.textContent = `${volumeInput.value}%`;
     setVolume(Number(volumeInput.value));
   });
-  volumeRow.appendChild(volumeInput);
-  volumeRow.appendChild(volumeValue);
+  volumePopover.appendChild(volumeInput);
+  volumePopover.appendChild(volumeValue);
+
+  function closeVolumePopover() {
+    volumePopoverOpen = false;
+    volumeControl.classList.remove('is-open');
+    if (removeVolumeOutsideListener) {
+      removeVolumeOutsideListener();
+      removeVolumeOutsideListener = null;
+    }
+  }
+  function openVolumePopover() {
+    volumePopoverOpen = true;
+    volumeControl.classList.add('is-open');
+    // Reanexa o listener de "clique fora" a cada chamada (inclusive ao restaurar o estado após
+    // um poll), já que o node antigo de volumeControl foi descartado no rebuild do DOM.
+    if (removeVolumeOutsideListener) removeVolumeOutsideListener();
+    const handleOutsideClick = (event) => {
+      if (!volumeControl.contains(event.target)) closeVolumePopover();
+    };
+    document.addEventListener('click', handleOutsideClick);
+    removeVolumeOutsideListener = () => document.removeEventListener('click', handleOutsideClick);
+  }
+  volumeToggle.addEventListener('click', (event) => {
+    event.stopPropagation();
+    if (volumeControl.classList.contains('is-open')) closeVolumePopover();
+    else openVolumePopover();
+  });
+  // Preserva o popover aberto entre polls (renderQueue() recria esse DOM a cada 4s).
+  if (volumePopoverOpen) openVolumePopover();
+
+  volumeControl.appendChild(volumeToggle);
+  volumeControl.appendChild(volumePopover);
+  volumeRow.appendChild(volumeControl);
 
   const leaveBtn = el('button', 'btn-leave');
   leaveBtn.type = 'button';
@@ -392,30 +476,47 @@ function renderQueue(data) {
   input.placeholder = 'Nome da música ou link (YouTube, SoundCloud...)';
   input.required = true;
   input.maxLength = 300;
+
   const submit = el('button', 'btn btn-primary btn-icon-only');
   submit.type = 'submit';
   submit.title = 'Adicionar à fila';
   submit.setAttribute('aria-label', 'Adicionar à fila');
   submit.appendChild(icon('plus'));
-  form.appendChild(input);
-  form.appendChild(submit);
+
+  const playNextBtn = el('button', 'btn btn-secondary btn-icon-only');
+  playNextBtn.type = 'button';
+  playNextBtn.title = 'Tocar a seguir (topo da fila)';
+  playNextBtn.setAttribute('aria-label', 'Tocar a seguir (topo da fila)');
+  playNextBtn.appendChild(icon('list-start'));
+
+  const submitTrack = async (playNext) => {
+    if (!input.reportValidity()) return;
+    submit.disabled = true;
+    playNextBtn.disabled = true;
+    (playNext ? playNextBtn : submit).classList.add('is-loading');
+    const res = await api('/api/queue/add', {
+      method: 'POST',
+      body: JSON.stringify({ query: input.value, playNext }),
+    });
+    submit.disabled = false;
+    playNextBtn.disabled = false;
+    submit.classList.remove('is-loading');
+    playNextBtn.classList.remove('is-loading');
+    if (res.ok) {
+      input.value = '';
+      await loadQueue();
+    }
+  };
+
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    void (async () => {
-      submit.disabled = true;
-      submit.classList.add('is-loading');
-      const res = await api('/api/queue/add', {
-        method: 'POST',
-        body: JSON.stringify({ query: input.value }),
-      });
-      submit.disabled = false;
-      submit.classList.remove('is-loading');
-      if (res.ok) {
-        input.value = '';
-        await loadQueue();
-      }
-    })();
+    void submitTrack(false);
   });
+  playNextBtn.addEventListener('click', () => void submitTrack(true));
+
+  form.appendChild(input);
+  form.appendChild(submit);
+  form.appendChild(playNextBtn);
   addSection.appendChild(form);
   app.appendChild(addSection);
 

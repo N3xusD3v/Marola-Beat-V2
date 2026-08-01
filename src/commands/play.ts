@@ -11,10 +11,14 @@ export const data = new SlashCommandBuilder()
   .setDescription('Toca uma música por busca ou URL')
   .addStringOption((option) =>
     option.setName('query').setDescription('Termo de busca ou URL da faixa/playlist').setRequired(true),
+  )
+  .addBooleanOption((option) =>
+    option.setName('topo').setDescription('Adiciona no topo da fila (toca a seguir) em vez do final'),
   );
 
 export async function execute(interaction: ChatInputCommandInteraction, client: BotClient) {
   const query = interaction.options.getString('query', true);
+  const playNext = interaction.options.getBoolean('topo') ?? false;
 
   const member = await interaction.guild!.members.fetch(interaction.user.id);
   const voiceChannel = member.voice.channel;
@@ -46,9 +50,9 @@ export async function execute(interaction: ChatInputCommandInteraction, client: 
   }
 
   if (result.loadType === 'playlist') {
-    await player.queue.add(result.tracks);
+    await player.queue.add(result.tracks, playNext ? 0 : undefined);
   } else {
-    await player.queue.add(firstTrack);
+    await player.queue.add(firstTrack, playNext ? 0 : undefined);
   }
 
   if (!player.playing && !player.paused) await player.play();
