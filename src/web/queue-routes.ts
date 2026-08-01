@@ -229,7 +229,7 @@ export function createQueueRouter(client: BotClient) {
   router.post('/volume', (req, res) => {
     void (async () => {
       const volume = numberField(req.body, 'volume');
-      if (volume === undefined || !Number.isInteger(volume) || volume < 0 || volume > 200) {
+      if (volume === undefined || !Number.isInteger(volume) || volume < 0 || volume > 100) {
         res.status(400).json({ error: 'invalid_volume' });
         return;
       }

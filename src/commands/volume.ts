@@ -10,10 +10,10 @@ export const data = new SlashCommandBuilder()
   .addIntegerOption((option) =>
     option
       .setName('nivel')
-      .setDescription('Volume em % (0-200)')
+      .setDescription('Volume em % (0-100)')
       .setRequired(true)
       .setMinValue(0)
-      .setMaxValue(200),
+      .setMaxValue(100),
   );
 
 export async function execute(interaction: ChatInputCommandInteraction, client: BotClient) {
