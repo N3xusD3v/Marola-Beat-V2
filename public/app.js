@@ -77,6 +77,10 @@ let pollTimer = null;
 let tickTimer = null;
 let lastData = null;
 let localPositionMs = 0;
+// renderQueue() reconstrói o DOM inteiro a cada poll (ver loadQueue()), então sem isso o popover
+// de volume fecharia sozinho a cada 4s mesmo com o usuário ainda mexendo nele.
+let volumePopoverOpen = false;
+let removeVolumeOutsideListener = null;
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -259,6 +263,11 @@ function renderPlayer(data) {
   const card = el('section', 'card now-playing');
 
   if (!data.current) {
+    volumePopoverOpen = false;
+    if (removeVolumeOutsideListener) {
+      removeVolumeOutsideListener();
+      removeVolumeOutsideListener = null;
+    }
     const header = el('div', 'card-header');
     header.appendChild(el('h2', null, 'Tocando agora'));
     card.appendChild(header);
@@ -365,17 +374,33 @@ function renderPlayer(data) {
   volumePopover.appendChild(volumeInput);
   volumePopover.appendChild(volumeValue);
 
-  function onOutsideVolumeClick(event) {
-    if (volumeControl.contains(event.target)) return;
+  function closeVolumePopover() {
+    volumePopoverOpen = false;
     volumeControl.classList.remove('is-open');
-    document.removeEventListener('click', onOutsideVolumeClick);
+    if (removeVolumeOutsideListener) {
+      removeVolumeOutsideListener();
+      removeVolumeOutsideListener = null;
+    }
+  }
+  function openVolumePopover() {
+    volumePopoverOpen = true;
+    volumeControl.classList.add('is-open');
+    // Reanexa o listener de "clique fora" a cada chamada (inclusive ao restaurar o estado após
+    // um poll), já que o node antigo de volumeControl foi descartado no rebuild do DOM.
+    if (removeVolumeOutsideListener) removeVolumeOutsideListener();
+    const handleOutsideClick = (event) => {
+      if (!volumeControl.contains(event.target)) closeVolumePopover();
+    };
+    document.addEventListener('click', handleOutsideClick);
+    removeVolumeOutsideListener = () => document.removeEventListener('click', handleOutsideClick);
   }
   volumeToggle.addEventListener('click', (event) => {
     event.stopPropagation();
-    const isOpen = volumeControl.classList.toggle('is-open');
-    if (isOpen) document.addEventListener('click', onOutsideVolumeClick);
-    else document.removeEventListener('click', onOutsideVolumeClick);
+    if (volumeControl.classList.contains('is-open')) closeVolumePopover();
+    else openVolumePopover();
   });
+  // Preserva o popover aberto entre polls (renderQueue() recria esse DOM a cada 4s).
+  if (volumePopoverOpen) openVolumePopover();
 
   volumeControl.appendChild(volumeToggle);
   volumeControl.appendChild(volumePopover);
