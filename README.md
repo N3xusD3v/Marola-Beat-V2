@@ -60,7 +60,7 @@ Configuração e variáveis de ambiente necessárias em [DEPLOYMENT.md](DEPLOYME
 | `/nowplaying` | Mostra a faixa tocando no momento            |
 | `/shuffle`    | Embaralha as músicas da fila                 |
 | `/loop`       | Define o modo de repetição (off/track/queue) |
-| `/volume`     | Ajusta o volume da reprodução (0-200%)       |
+| `/volume`     | Ajusta o volume da reprodução (0-100%)       |
 | `/remove`     | Remove uma música da fila pela posição       |
 | `/clear`      | Remove todas as músicas da fila              |
 | `/previous`   | Volta para a faixa anterior                  |

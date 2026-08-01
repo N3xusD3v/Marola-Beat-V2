@@ -311,7 +311,7 @@ function renderPlayer(data) {
   const volumeInput = document.createElement('input');
   volumeInput.type = 'range';
   volumeInput.min = '0';
-  volumeInput.max = '200';
+  volumeInput.max = '100';
   volumeInput.value = String(data.volume ?? 100);
   volumeInput.className = 'volume-slider';
   volumeInput.setAttribute('aria-label', 'Volume');
