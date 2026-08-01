@@ -20,6 +20,13 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 - `SECURITY.md` (política de disclosure de vulnerabilidades) e `CODE_OF_CONDUCT.md` (Contributor
   Covenant).
 - `public/favicon.svg` para o painel web (não existia nenhum antes).
+- Opção `topo` no `/play` e botão "tocar a seguir" no painel web, pra inserir uma música no topo
+  da fila (toca em seguida) em vez do final.
+- Painel web: tela de login ganhou uma lista dos recursos disponíveis (busca, fila em tempo real,
+  acesso restrito ao canal de voz) e o botão "Entrar com Discord" passou a usar a marca oficial do
+  Discord em vez de um ícone genérico.
+- Painel web: a próxima faixa da fila (a que toca depois da atual) tem destaque visual — selo "A
+  seguir", thumbnail maior e borda.
 
 ### Alterado
 
@@ -29,6 +36,11 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 - Painel web: paleta final em preto e branco estilo pôster (capa da faixa em full-bleed
   dessaturada, botão de play/pause circular, título grande uppercase), substituindo a versão
   intermediária com accent violeta→ciano.
+- Painel web: volume vira um ícone que abre um popover só ao clicar (nada acontece no hover), em
+  vez de um slider sempre visível ocupando espaço — segue o padrão usado por players como Spotify e
+  Apple Music.
+- Volume máximo agora é 100% (era 200%) no `/volume` e no painel — acima disso o Lavalink amplifica
+  o áudio digitalmente e distorce.
 - Badges do README (Conventional Commits, Prettier, versão do discord.js, PRs Welcome).
 - **Breaking:** migração de `discord-player` (engine de voz própria via `discord-voip`) para
   [Lavalink](https://lavalink.dev) v4 (via `lavalink-client`), depois de conexões de voz feitas
@@ -41,6 +53,15 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
   `discord-player-youtubei` e `youtube-dl-exec`; adicionada `lavalink-client`.
 - `Dockerfile` não instala mais `ffmpeg` (o Lavalink cuida da transcodificação em seu próprio
   container).
+
+### Corrigido
+
+- Painel web: card "Tocando agora" não pisca mais a cada atualização de 4s — era uma animação de
+  entrada nos cards que replay a cada poll, já que `renderQueue()` reconstrói o DOM inteiro.
+- Painel web: popover de volume não fecha mais sozinho enquanto o usuário está mexendo nele (mesma
+  causa: estado perdido a cada poll).
+- Painel web: faltava o ícone `plus` no mapa de ícones do Lucide — o botão "Adicionar" ficava com
+  um quadrado vazio, sem ícone.
 
 ## [2.1.0] - 2026-07-30
 
