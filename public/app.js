@@ -341,7 +341,15 @@ function renderPlayer(data) {
   card.appendChild(controls);
 
   const volumeRow = el('div', 'volume-row');
-  volumeRow.appendChild(icon('volume-2', 'volume-icon'));
+
+  const volumeControl = el('div', 'volume-control');
+  const volumeToggle = el('button', 'volume-toggle');
+  volumeToggle.type = 'button';
+  volumeToggle.title = 'Volume';
+  volumeToggle.setAttribute('aria-label', 'Volume');
+  volumeToggle.appendChild(icon('volume-2'));
+
+  const volumePopover = el('div', 'volume-popover');
   const volumeInput = document.createElement('input');
   volumeInput.type = 'range';
   volumeInput.min = '0';
@@ -354,8 +362,24 @@ function renderPlayer(data) {
     volumeValue.textContent = `${volumeInput.value}%`;
     setVolume(Number(volumeInput.value));
   });
-  volumeRow.appendChild(volumeInput);
-  volumeRow.appendChild(volumeValue);
+  volumePopover.appendChild(volumeInput);
+  volumePopover.appendChild(volumeValue);
+
+  function onOutsideVolumeClick(event) {
+    if (volumeControl.contains(event.target)) return;
+    volumeControl.classList.remove('is-open');
+    document.removeEventListener('click', onOutsideVolumeClick);
+  }
+  volumeToggle.addEventListener('click', (event) => {
+    event.stopPropagation();
+    const isOpen = volumeControl.classList.toggle('is-open');
+    if (isOpen) document.addEventListener('click', onOutsideVolumeClick);
+    else document.removeEventListener('click', onOutsideVolumeClick);
+  });
+
+  volumeControl.appendChild(volumeToggle);
+  volumeControl.appendChild(volumePopover);
+  volumeRow.appendChild(volumeControl);
 
   const leaveBtn = el('button', 'btn-leave');
   leaveBtn.type = 'button';
