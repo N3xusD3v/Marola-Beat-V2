@@ -430,6 +430,9 @@ body.login-active main {
 .track-row-next .thumb {
   width: 54px;
   height: 54px;
+  /* Única thumbnail da fila que mantém a cor original (o resto segue grayscale via .thumb) — a
+     faixa "a seguir" ganha destaque visual, mas escurecida pra não brigar com o texto. */
+  filter: brightness(0.7);
 }
 
 .track-next-label {
@@ -520,7 +523,9 @@ body.login-active main {
   background-size: cover;
   background-position: center;
   background-color: #131313;
-  filter: grayscale(1) contrast(1.08) brightness(0.7);
+  /* Único elemento do painel que mantém a cor original da capa — o resto (fila, thumbs) segue
+     grayscale de propósito. */
+  filter: contrast(1.05) brightness(0.75);
 }
 
 .cover-scrim {

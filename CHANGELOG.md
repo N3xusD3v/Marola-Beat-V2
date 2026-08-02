@@ -19,6 +19,9 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ### Alterado
 
+- Painel web: a capa da faixa em "Tocando agora" e a thumbnail da faixa "a seguir" na fila voltam
+  a mostrar a cor original (a "a seguir" escurecida) — as demais thumbnails da fila continuam em
+  preto-e-branco.
 - `Dockerfile`: imagem base `node:22-alpine` → `node:24-alpine` (LTS atual); CI também atualizado
   para rodar em Node 24.
 
