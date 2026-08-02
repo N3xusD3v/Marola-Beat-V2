@@ -8,7 +8,7 @@ export const ERROR_COLOR = 0xed4245;
 export function requesterName(track: Track | UnresolvedTrack): string {
   const requester = track.requester;
   if (!requester) return 'Desconhecido';
-  return requester.tag ?? requester.username ?? requester.id;
+  return requester.displayName ?? requester.id;
 }
 
 export function trackEmbed(title: string, track: Track): EmbedBuilder {

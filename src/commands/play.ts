@@ -38,8 +38,9 @@ export async function execute(interaction: ChatInputCommandInteraction, client: 
   if (!player.connected) await player.connect();
 
   // useUnresolvedData isn't enabled, so search() always resolves to SearchResult (never the
-  // UnresolvedSearchResult half of its return union).
-  const result = (await player.search({ query }, interaction.user)) as SearchResult;
+  // UnresolvedSearchResult half of its return union). Passa o GuildMember (não o User) como
+  // requester pra "Pedido por" mostrar o apelido do servidor, não o @username da conta.
+  const result = (await player.search({ query }, member)) as SearchResult;
   if (result.loadType === 'error' || result.loadType === 'empty') {
     return interaction.editReply('❌ Nenhum resultado encontrado.');
   }
@@ -67,8 +68,8 @@ export async function execute(interaction: ChatInputCommandInteraction, client: 
           )
           .setThumbnail(result.playlist.thumbnail ?? null)
           .setFooter({
-            text: `Pedido por ${interaction.user.tag}`,
-            iconURL: interaction.user.displayAvatarURL(),
+            text: `Pedido por ${member.displayName}`,
+            iconURL: member.displayAvatarURL(),
           })
       : new EmbedBuilder()
           .setColor(BRAND_COLOR)
@@ -84,8 +85,8 @@ export async function execute(interaction: ChatInputCommandInteraction, client: 
             { name: 'Autor', value: firstTrack.info.author, inline: true },
           )
           .setFooter({
-            text: `Pedido por ${interaction.user.tag}`,
-            iconURL: interaction.user.displayAvatarURL(),
+            text: `Pedido por ${member.displayName}`,
+            iconURL: member.displayAvatarURL(),
           });
 
   return interaction.editReply({ embeds: [embed] });

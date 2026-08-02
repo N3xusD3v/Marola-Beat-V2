@@ -87,9 +87,9 @@ export function createQueueRouter(client: BotClient) {
       }
 
       try {
-        // Busca o User real (não só o id salvo na sessão) para que o embed/DTO
-        // mostre o nome de usuário corretamente em "Pedido por".
-        const requestedBy = await client.users.fetch(req.session.user!.id).catch(() => undefined);
+        // Busca o GuildMember (não o User global) pra que "Pedido por" mostre o apelido do
+        // servidor/nome de exibição, não o @username da conta.
+        const requestedBy = await guild.members.fetch(req.session.user!.id).catch(() => undefined);
 
         const player = client.lavalink.createPlayer({
           guildId: guild.id,

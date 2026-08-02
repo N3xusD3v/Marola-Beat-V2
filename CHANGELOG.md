@@ -35,6 +35,9 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ### Alterado
 
+- "Pedido por" (no `/play`, `/nowplaying`, `/queue` e no painel web) agora mostra o apelido do
+  servidor/nome de exibição (`GuildMember.displayName`) em vez do @username da conta Discord —
+  passamos a guardar o `GuildMember` como requester da faixa em vez do `User` global.
 - Painel web: a capa da faixa em "Tocando agora" e a thumbnail da faixa "a seguir" na fila voltam
   a mostrar a cor original (a "a seguir" escurecida) — as demais thumbnails da fila continuam em
   preto-e-branco.
