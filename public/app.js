@@ -473,7 +473,7 @@ function renderQueue(data) {
   const form = document.createElement('form');
   const input = document.createElement('input');
   input.type = 'text';
-  input.placeholder = 'Nome da música ou link (YouTube, SoundCloud...)';
+  input.placeholder = 'Nome ou link da música';
   input.required = true;
   input.maxLength = 300;
 

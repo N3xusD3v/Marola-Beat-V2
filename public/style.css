@@ -555,7 +555,7 @@ main {
 }
 
 .volume-control {
-  position: relative;
+  display: inline-flex;
 }
 
 .volume-toggle {
@@ -581,10 +581,14 @@ main {
 }
 
 .volume-popover {
+  /* Centralizado na .volume-row (não no ícone) de propósito: a .volume-row ocupa a largura
+     inteira do card, então isso evita que o popover seja cortado pelo overflow:hidden do card
+     em telas estreitas (acontecia quando ele abria pro lado do ícone, ancorado num container
+     bem menor que podia ficar perto da borda em mobile). */
   position: absolute;
-  right: calc(100% + 0.5rem);
+  left: 50%;
   top: 50%;
-  transform: translateY(-50%) translateX(6px);
+  transform: translate(-50%, calc(-50% + 6px));
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -607,7 +611,7 @@ main {
 .volume-control.is-open .volume-popover {
   opacity: 1;
   pointer-events: auto;
-  transform: translateY(-50%) translateX(0);
+  transform: translate(-50%, -50%);
 }
 
 .volume-label {
@@ -896,5 +900,9 @@ main {
 
   .player-controls {
     gap: 1.25rem;
+  }
+
+  .add-track input {
+    font-size: 0.85rem;
   }
 }
