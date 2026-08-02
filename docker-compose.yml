@@ -12,6 +12,8 @@ services:
     depends_on:
       lavalink:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       DISCORD_TOKEN: ${DISCORD_TOKEN}
       DISCORD_APP_ID: ${DISCORD_APP_ID}
@@ -20,6 +22,7 @@ services:
       WEB_GUILD_ID: ${WEB_GUILD_ID}
       PUBLIC_URL: ${PUBLIC_URL}
       SESSION_SECRET: ${SESSION_SECRET}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       PORT: ${PORT:-3000}
       LOG_LEVEL: ${LOG_LEVEL:-info}
       LAVALINK_HOST: lavalink
@@ -59,3 +62,24 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
+
+  # Store da sessão do painel web (substitui o MemoryStore padrão do express-session, que perde
+  # tudo a cada redeploy e não escala além de um processo — ver DEPLOYMENT.md). Não exposto ao
+  # host, de propósito: só o serviço `bot` fala com ele, pela rede interna do compose.
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD} --save 60 1
+    volumes:
+      - redis-data:/data
+    expose:
+      - '6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', '--no-auth-warning', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  redis-data:
