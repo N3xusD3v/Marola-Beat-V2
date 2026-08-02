@@ -163,7 +163,7 @@ function renderUser(user) {
   img.alt = '';
   img.className = 'avatar';
   userBox.appendChild(img);
-  userBox.appendChild(el('span', 'username', user.username));
+  userBox.appendChild(el('span', 'username', user.displayName ?? user.username));
   const logout = el('button', 'icon-btn icon-btn-ghost');
   logout.type = 'button';
   logout.title = 'Sair da conta';

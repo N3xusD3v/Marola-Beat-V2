@@ -52,8 +52,10 @@ três em todo PR e falha o merge se algum quebrar.
   compose por padrão).
 - `src/types/` — `Command` e `BotClient` (Client com `.commands`/`.lavalink` tipados).
 - `src/web/` — painel web: `server.ts` monta o app Express (sessão, estáticos de `public/`),
-  `discord-oauth.ts` fala com a API OAuth2 do Discord, `auth.ts` são as rotas de login/callback/
-  logout, `middleware.ts` (`requireVoiceMember`) exige sessão válida **e** estar no momento no
+  `discord-oauth.ts` fala com a API OAuth2 do Discord, `auth.ts` (`createAuthRouter(client)`, uma
+  factory como `createQueueRouter` — precisa do `client` pra resolver o `GuildMember` no
+  `/api/me`) são as rotas de login/callback/logout, `middleware.ts` (`requireVoiceMember`) exige
+  sessão válida **e** estar no momento no
   mesmo canal de voz que o bot (via `guild.voiceStates.cache`, não a API REST — é mais rápido e
   não precisa de escopo `guilds`/`guilds.members.read`), `queue-routes.ts` expõe
   `GET/POST /api/queue*` (`add`, `move`, `move-to-top`, `remove`, `clear`, `pause`, `skip`,

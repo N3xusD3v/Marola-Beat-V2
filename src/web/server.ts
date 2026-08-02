@@ -5,7 +5,7 @@ import type { Express } from 'express';
 import type { BotClient } from '../types/client.js';
 import { env } from '../config/env.js';
 import { logger } from '../lib/logger.js';
-import { authRouter } from './auth.js';
+import { createAuthRouter } from './auth.js';
 import { createQueueRouter } from './queue-routes.js';
 import '../types/session.js';
 
@@ -34,7 +34,7 @@ export function createServer(client: BotClient): Express {
     }),
   );
 
-  app.use(authRouter);
+  app.use(createAuthRouter(client));
   app.use('/api/queue', createQueueRouter(client));
   app.use(express.static(path.join(process.cwd(), 'public')));
 
