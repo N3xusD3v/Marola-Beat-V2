@@ -406,8 +406,8 @@ body.login-active main {
   color: var(--text-muted);
 }
 
-.login-legal {
-  margin: 1rem 0 0;
+.login-card .login-legal {
+  margin: 1.75rem 0 0;
   font-size: 0.75rem;
   color: var(--text-muted);
 }
@@ -1148,6 +1148,33 @@ body.login-active main {
 
   .add-track input {
     font-size: 0.85rem;
+  }
+
+  /* Numa tela de 375px, o thumb (46-54px) + as 4 ações da fila (32px cada) sozinhos já
+     consomem a maior parte da linha, deixando pouquíssimo espaço pro título/artista/duração —
+     encolhe os dois lados pra sobrar espaço de leitura de verdade pro texto (flex: 1 no
+     .track-info). */
+  .thumb {
+    width: 36px;
+    height: 36px;
+  }
+
+  .track-row-next .thumb {
+    width: 42px;
+    height: 42px;
+  }
+
+  .track-row {
+    gap: 0.6rem;
+  }
+
+  .track-actions {
+    gap: 0.2rem;
+  }
+
+  .track-actions .icon-btn {
+    width: 28px;
+    height: 28px;
   }
 }
 
