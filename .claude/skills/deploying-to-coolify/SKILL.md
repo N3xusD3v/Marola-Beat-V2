@@ -17,7 +17,7 @@ This is the quick-reference version.
 - Coolify builds directly from `Dockerfile`/`docker-compose.yml` in this repo via its GitHub App
   integration. Auto Deploy on push to `main` should be enabled on the resource.
 - Required runtime environment variables in Coolify: `DISCORD_TOKEN`, `DISCORD_APP_ID`,
-  `DISCORD_CLIENT_SECRET`, `WEB_GUILD_ID`, `PUBLIC_URL`, `SESSION_SECRET`, `LAVALINK_PASSWORD`
+  `DISCORD_CLIENT_SECRET`, `PUBLIC_URL`, `SESSION_SECRET`, `LAVALINK_PASSWORD`
   (shared secret between `bot` and `lavalink`, any random string — `openssl rand -hex 32`),
   `YOUTUBE_OAUTH_REFRESH_TOKEN` (obtained via a one-time device-code flow after first deploy, see
   DEPLOYMENT.md's "Autenticação OAuth do YouTube"). Optional: `GUILD_ID` (leave empty in

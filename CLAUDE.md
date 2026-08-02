@@ -51,18 +51,26 @@ três em todo PR e falha o merge se algum quebrar.
   Inclui `lavalinkHost`/`lavalinkPort`/`lavalinkPassword` (o node aponta pro serviço `lavalink` do
   compose por padrão).
 - `src/types/` — `Command` e `BotClient` (Client com `.commands`/`.lavalink` tipados).
-- `src/web/` — painel web: `server.ts` monta o app Express (sessão, estáticos de `public/`),
-  `discord-oauth.ts` fala com a API OAuth2 do Discord, `auth.ts` (`createAuthRouter(client)`, uma
-  factory como `createQueueRouter` — precisa do `client` pra resolver o `GuildMember` no
-  `/api/me`) são as rotas de login/callback/logout, `middleware.ts` (`requireVoiceMember`) exige
-  sessão válida **e** estar no momento no
-  mesmo canal de voz que o bot (via `guild.voiceStates.cache`, não a API REST — é mais rápido e
-  não precisa de escopo `guilds`/`guilds.members.read`), `queue-routes.ts` expõe
+- `src/web/` — painel web, multi-servidor (o usuário escolhe qual gerenciar, não é fixo por env
+  var): `server.ts` monta o app Express (sessão, estáticos de `public/`), `discord-oauth.ts` fala
+  com a API OAuth2 do Discord (escopo `identify guilds` — o `guilds` é só pra listar os
+  servidores do usuário em `GET /api/guilds`; **não** usamos `guilds.members.read`, permissão de
+  canal de voz continua vindo do cache do próprio bot), `auth.ts` (`createAuthRouter(client)`,
+  uma factory como `createQueueRouter`) são as rotas de login/callback/logout — o callback guarda
+  `session.userGuildIds` (só os IDs, buscados uma vez no login) além do usuário,
+  `guilds-routes.ts` expõe `GET /api/guilds` (interseção entre `session.userGuildIds` e
+  `client.guilds.cache` — nome/ícone sempre vêm do cache do bot, não da API do usuário) e
+  `POST /api/guilds/select` (grava `session.selectedGuildId`), `middleware.ts`
+  (`requireVoiceMember`) exige sessão válida **e** um servidor selecionado (`no_guild_selected`
+  se não) **e** estar no momento no mesmo canal de voz que o bot nesse servidor (via
+  `guild.voiceStates.cache`, não a API REST — mais rápido), `queue-routes.ts` expõe
   `GET/POST /api/queue*` (`add`, `move`, `move-to-top`, `remove`, `clear`, `pause`, `skip`,
-  `previous`, `volume`, `seek`, `leave`). `move` só troca posições adjacentes: `player.queue` não
-  tem um método `swap`, então isso é feito com `player.queue.splice(i, 2, [trackAtI+1, trackAtI])`.
-  `move-to-top` pula direto pra posição 0 vindo de qualquer índice, com dois `splice` (remove do
-  índice de origem, insere no início) já que `splice` só opera num índice por chamada.
+  `previous`, `volume`, `seek`, `leave`), sempre operando na guild de `req.voice.guildId` (setado
+  pelo middleware, nunca uma env var fixa). `move` só troca posições adjacentes: `player.queue`
+  não tem um método `swap`, então isso é feito com
+  `player.queue.splice(i, 2, [trackAtI+1, trackAtI])`. `move-to-top` pula direto pra posição 0
+  vindo de qualquer índice, com dois `splice` (remove do índice de origem, insere no início) já
+  que `splice` só opera num índice por chamada.
 - `public/` — frontend do painel, JS puro sem build step (fora do projeto TypeScript,
   ignorado pelo ESLint/tsconfig de propósito). Se adicionar algo aqui, não assuma tipos do `src/`.
 - `lavalink/application.yml` — config do node Lavalink: fontes de áudio habilitadas

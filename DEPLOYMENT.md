@@ -1,8 +1,12 @@
 # Deploy no Coolify
 
 O bot mantém uma conexão WebSocket com o Discord **e** serve um painel web (fila de
-reprodução, login com Discord) na porta interna `3000`. O painel só é acessível para quem
-está no momento no mesmo canal de voz que o bot — veja [README.md](README.md#painel-web).
+reprodução, login com Discord) na porta interna `3000`. O painel funciona em qualquer servidor
+onde o bot estiver — se o usuário logado tiver o bot em mais de um servidor em comum, escolhe
+qual gerenciar numa tela depois do login. O acesso a cada servidor selecionado só é liberado pra
+quem está no momento no mesmo canal de voz que o bot lá — veja [README.md](README.md#painel-web).
+Não precisa de nenhuma configuração extra pra adicionar o bot a um novo servidor: basta convidar o
+bot, que ele já aparece como opção pra quem tiver acesso a ambos.
 
 O `docker-compose.yml` sobe três serviços: `bot` (o que acabou de ser descrito, recebe o domínio
 no Coolify), `lavalink` (áudio + conexão de voz com o Discord) e `redis` (store da sessão do
@@ -34,8 +38,8 @@ Mais simples de manter — o próprio Coolify clona o repositório e builda a im
    - `DISCORD_TOKEN`
    - `DISCORD_APP_ID`
    - `DISCORD_CLIENT_SECRET`
-   - `GUILD_ID` (deixe vazio em produção para comandos globais — não confundir com `WEB_GUILD_ID`)
-   - `WEB_GUILD_ID` (ID do servidor cuja fila o painel gerencia)
+   - `GUILD_ID` (deixe vazio em produção para comandos globais — ver "Registrando comandos de
+     barra" abaixo)
    - `PUBLIC_URL` = `https://beat.n3xus.dev`
    - `SESSION_SECRET` (string aleatória — `openssl rand -hex 32`)
    - `REDIS_PASSWORD` (string aleatória — `openssl rand -hex 32`; usada pelos serviços `bot` e
@@ -124,9 +128,9 @@ Rode `npm run register` novamente sempre que adicionar, remover ou alterar um co
 
 ## Checklist de produção
 
-- [ ] `DISCORD_TOKEN`, `DISCORD_APP_ID`, `DISCORD_CLIENT_SECRET`, `WEB_GUILD_ID`, `PUBLIC_URL`,
-      `SESSION_SECRET`, `REDIS_PASSWORD` e `LAVALINK_PASSWORD` configurados como variáveis de
-      ambiente no Coolify (nunca commitados no repositório)
+- [ ] `DISCORD_TOKEN`, `DISCORD_APP_ID`, `DISCORD_CLIENT_SECRET`, `PUBLIC_URL`, `SESSION_SECRET`,
+      `REDIS_PASSWORD` e `LAVALINK_PASSWORD` configurados como variáveis de ambiente no Coolify
+      (nunca commitados no repositório)
 - [ ] Serviço `redis` sem porta/domínio exposto no Coolify (só o `bot` recebe domínio) — sessão
       do painel persiste entre redeploys (antes usava `MemoryStore` em memória, perdia tudo)
 - [ ] `YOUTUBE_OAUTH_REFRESH_TOKEN` configurada após completar o device-code flow (veja

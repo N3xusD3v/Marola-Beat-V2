@@ -7,7 +7,6 @@ interface Env {
   discordAppId: string;
   discordClientSecret: string;
   guildId?: string;
-  webGuildId: string;
   publicUrl: string;
   sessionSecret: string;
   redisUrl: string;
@@ -51,7 +50,6 @@ export const env: Env = {
   discordAppId: required('DISCORD_APP_ID'),
   discordClientSecret: required('DISCORD_CLIENT_SECRET'),
   guildId: process.env.GUILD_ID || undefined,
-  webGuildId: required('WEB_GUILD_ID'),
   publicUrl: required('PUBLIC_URL').replace(/\/+$/, ''),
   sessionSecret: required('SESSION_SECRET'),
   redisUrl: required('REDIS_URL'),
