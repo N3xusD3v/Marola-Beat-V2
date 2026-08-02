@@ -16,6 +16,11 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 - Painel web: fundo ambiente colorido (`public/app-background.jpg`) na tela pós-login, bem
   escurecido atrás dos cards de vidro — única parte do painel que foge do preto-e-branco de
   propósito.
+- Logo oficial do projeto (emblema de onda + wordmark) aplicado em todo o projeto: favicon
+  completo (`favicon.ico`, PNGs 16/32, `apple-touch-icon.png`, ícones 192/512 +
+  `site.webmanifest` pra "adicionar à tela inicial"), marca no topbar e no card de login do
+  painel web, meta tags Open Graph/Twitter Card (`og:image`/`twitter:image`) pra preview ao
+  compartilhar o link, e banner no topo do README.
 
 ### Alterado
 

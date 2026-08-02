@@ -74,6 +74,19 @@ body:not(.login-active)::after {
   z-index: 10;
 }
 
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.brand-mark {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .topbar h1 {
   font-size: 1.05rem;
   font-weight: 800;
@@ -223,10 +236,10 @@ body.login-active main {
 }
 
 .login-mark {
-  width: 40px;
-  height: 40px;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
   margin: 0 auto 1rem;
-  color: var(--text);
 }
 
 .login-eyebrow {

@@ -33,8 +33,6 @@ const ICON_PATHS = {
   'chevron-down': '<path d="m6 9 6 6 6-6" />',
   'trash-2':
     '<path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />',
-  'music-4':
-    '<path d="M9 18V5l12-2v13" /><path d="m9 9 12-2" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />',
   'loader-circle': '<path d="M21 12a9 9 0 1 1-6.219-8.56" />',
   'disc-3':
     '<circle cx="12" cy="12" r="10" /><path d="M6 12c0-1.7.7-3.2 1.8-4.2" /><circle cx="12" cy="12" r="2" /><path d="M18 12c0 1.7-.7 3.2-1.8 4.2" />',
@@ -116,7 +114,11 @@ function renderLogin() {
   userBox.textContent = '';
   app.textContent = '';
   const box = el('div', 'card login-card');
-  box.appendChild(icon('music-4', 'login-mark'));
+  const mark = document.createElement('img');
+  mark.src = '/logo-mark.png';
+  mark.alt = '';
+  mark.className = 'login-mark';
+  box.appendChild(mark);
   box.appendChild(el('div', 'login-eyebrow', 'Painel Web'));
   box.appendChild(el('h2', null, 'Marola Beat'));
   box.appendChild(el('p', null, 'Entre com sua conta do Discord para gerenciar a fila.'));

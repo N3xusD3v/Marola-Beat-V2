@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🎵 Marola Beat V2
+<img src="public/banner.jpg" alt="Marola Beat" width="800" />
 
 **Bot de música open source para Discord**
 Construído com [discord.js](https://discord.js.org), [Lavalink](https://lavalink.dev) (via
