@@ -57,6 +57,9 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ### Alterado
 
+- Arte de fundo da tela de login (`public/login-hero.jpg`) trocada por uma nova ilustração —
+  convertida de PNG (2,7MB) pra JPEG qualidade 85 (~380KB) pra manter o tempo de carregamento,
+  já que a imagem é pré-carregada com `fetchpriority="high"`.
 - "Pedido por" (no `/play`, `/nowplaying`, `/queue` e no painel web) agora mostra o apelido do
   servidor/nome de exibição (`GuildMember.displayName`) em vez do @username da conta Discord —
   passamos a guardar o `GuildMember` como requester da faixa em vez do `User` global.
