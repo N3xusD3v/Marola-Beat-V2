@@ -23,16 +23,29 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
   compartilhar o link, e banner no topo do README.
 - Fonte [Audiowide](https://fonts.google.com/specimen/Audiowide) (SIL OFL) auto-hospedada
   (`public/fonts/audiowide.woff2`, sem CDN de terceiro) aplicada só no wordmark "Marola Beat"
-  (topbar e card de login) — combina com o estilo futurista/eletrônico do logo novo; o resto do
-  texto do painel continua na fonte de sistema.
+  (topbar e card de login) — combina com o estilo futurista/eletrônico do logo novo.
+- Fonte [Space Grotesk](https://fonts.google.com/specimen/Space+Grotesk) (SIL OFL, variável,
+  também auto-hospedada) em todo o resto do texto de UI do painel, no lugar da fonte de sistema —
+  mantém o caráter técnico do wordmark sem sacrificar legibilidade em texto corrido.
+- Painel web: feedback de erro inline ao falhar em adicionar uma música (sem resultados, canal
+  indisponível, etc.) — antes o spinner só parava sem dizer o motivo.
+- Painel web: ícone de volume muda pra "mudo" quando o volume está em 0%.
+- Painel web: popover de volume agora fecha com `Esc` (devolvendo o foco pro botão), além de
+  clique fora.
 
 ### Alterado
 
 - Painel web: a capa da faixa em "Tocando agora" e a thumbnail da faixa "a seguir" na fila voltam
   a mostrar a cor original (a "a seguir" escurecida) — as demais thumbnails da fila continuam em
   preto-e-branco.
+- Painel web: título e metadados da faixa (autor/duração/quem pediu) ganham `title=""` — passar o
+  mouse mostra o texto completo quando fica truncado.
 - `Dockerfile`: imagem base `node:22-alpine` → `node:24-alpine` (LTS atual); CI também atualizado
   para rodar em Node 24.
+
+### Removido
+
+- Dois ícones do painel web que nunca chegaram a ser usados (`log-in`, `loader-circle`).
 
 ## [3.0.0] - 2026-08-02
 

@@ -8,6 +8,13 @@ const ERROR_MESSAGES = {
   wrong_voice_channel: 'Você precisa estar no mesmo canal de voz que o bot está tocando.',
 };
 
+const ADD_TRACK_ERROR_MESSAGES = {
+  invalid_query: 'Digite o nome ou link de uma música.',
+  voice_channel_unavailable: 'O canal de voz não está mais disponível.',
+  no_results: 'Nenhum resultado encontrado para essa busca.',
+  add_failed: 'Não foi possível adicionar a música. Tente novamente.',
+};
+
 const POLL_INTERVAL_MS = 4000;
 
 // Paths do Lucide (https://lucide.dev, licença ISC) — sem outer <svg>, ver icon().
@@ -21,8 +28,6 @@ const ICON_PATHS = {
     '<path d="M21 4v16" /><path d="M6.029 4.285A2 2 0 0 0 3 6v12a2 2 0 0 0 3.029 1.715l9.997-5.998a2 2 0 0 0 .003-3.432z" />',
   'log-out':
     '<path d="m16 17 5-5-5-5" /><path d="M21 12H9" /><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />',
-  'log-in':
-    '<path d="m10 17 5-5-5-5" /><path d="M15 12H3" /><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />',
   'volume-2':
     '<path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" /><path d="M16 9a5 5 0 0 1 0 6" /><path d="M19.364 18.364a9 9 0 0 0 0-12.728" />',
   'volume-x':
@@ -33,7 +38,6 @@ const ICON_PATHS = {
   'chevron-down': '<path d="m6 9 6 6 6-6" />',
   'trash-2':
     '<path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />',
-  'loader-circle': '<path d="M21 12a9 9 0 1 1-6.219-8.56" />',
   'disc-3':
     '<circle cx="12" cy="12" r="10" /><path d="M6 12c0-1.7.7-3.2 1.8-4.2" /><circle cx="12" cy="12" r="2" /><path d="M18 12c0 1.7-.7 3.2-1.8 4.2" />',
   'list-start':
@@ -200,10 +204,16 @@ function trackRow(track, index, { onMoveToTop, onUp, onDown, onRemove, isFirst, 
 
   const info = el('div', 'track-info');
   if (isFirst) info.appendChild(el('div', 'track-next-label', 'A seguir'));
-  info.appendChild(el('div', 'track-title', track.title));
-  info.appendChild(
-    el('div', 'track-meta', `${track.author} • ${track.duration} • pedido por ${track.requestedBy}`),
+  const title = el('div', 'track-title', track.title);
+  title.title = track.title;
+  info.appendChild(title);
+  const meta = el(
+    'div',
+    'track-meta',
+    `${track.author} • ${track.duration} • pedido por ${track.requestedBy}`,
   );
+  meta.title = meta.textContent;
+  info.appendChild(meta);
   row.appendChild(info);
 
   if (onMoveToTop || onUp || onDown || onRemove) {
@@ -305,8 +315,12 @@ function renderPlayer(data) {
   card.appendChild(eyebrow);
 
   const info = el('div', 'track-info');
-  info.appendChild(el('div', 'track-title', track.title));
-  info.appendChild(el('div', 'track-meta', `${track.author} • pedido por ${track.requestedBy}`));
+  const title = el('div', 'track-title', track.title);
+  title.title = track.title;
+  info.appendChild(title);
+  const meta = el('div', 'track-meta', `${track.author} • pedido por ${track.requestedBy}`);
+  meta.title = meta.textContent;
+  info.appendChild(meta);
 
   if (!track.isStream) {
     const progress = el('div', 'progress');
@@ -371,7 +385,7 @@ function renderPlayer(data) {
   volumeToggle.type = 'button';
   volumeToggle.title = 'Volume';
   volumeToggle.setAttribute('aria-label', 'Volume');
-  volumeToggle.appendChild(icon('volume-2'));
+  volumeToggle.appendChild(icon(Number(data.volume ?? 100) === 0 ? 'volume-x' : 'volume-2'));
 
   const volumePopover = el('div', 'volume-popover');
   const volumeInput = document.createElement('input');
@@ -384,6 +398,7 @@ function renderPlayer(data) {
   const volumeValue = el('span', 'volume-label', `${data.volume ?? 100}%`);
   volumeInput.addEventListener('input', () => {
     volumeValue.textContent = `${volumeInput.value}%`;
+    volumeToggle.replaceChildren(icon(Number(volumeInput.value) === 0 ? 'volume-x' : 'volume-2'));
     setVolume(Number(volumeInput.value));
   });
   volumePopover.appendChild(volumeInput);
@@ -400,14 +415,24 @@ function renderPlayer(data) {
   function openVolumePopover() {
     volumePopoverOpen = true;
     volumeControl.classList.add('is-open');
-    // Reanexa o listener de "clique fora" a cada chamada (inclusive ao restaurar o estado após
-    // um poll), já que o node antigo de volumeControl foi descartado no rebuild do DOM.
+    // Reanexa os listeners a cada chamada (inclusive ao restaurar o estado após um poll), já que
+    // o node antigo de volumeControl foi descartado no rebuild do DOM.
     if (removeVolumeOutsideListener) removeVolumeOutsideListener();
     const handleOutsideClick = (event) => {
       if (!volumeControl.contains(event.target)) closeVolumePopover();
     };
+    const handleKeydown = (event) => {
+      if (event.key === 'Escape') {
+        closeVolumePopover();
+        volumeToggle.focus();
+      }
+    };
     document.addEventListener('click', handleOutsideClick);
-    removeVolumeOutsideListener = () => document.removeEventListener('click', handleOutsideClick);
+    document.addEventListener('keydown', handleKeydown);
+    removeVolumeOutsideListener = () => {
+      document.removeEventListener('click', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeydown);
+    };
   }
   volumeToggle.addEventListener('click', (event) => {
     event.stopPropagation();
@@ -503,8 +528,12 @@ function renderQueue(data) {
   playNextBtn.setAttribute('aria-label', 'Tocar a seguir (topo da fila)');
   playNextBtn.appendChild(icon('list-start'));
 
+  const formError = el('p', 'form-error');
+  formError.setAttribute('role', 'alert');
+
   const submitTrack = async (playNext) => {
     if (!input.reportValidity()) return;
+    formError.textContent = '';
     submit.disabled = true;
     playNextBtn.disabled = true;
     (playNext ? playNextBtn : submit).classList.add('is-loading');
@@ -519,6 +548,10 @@ function renderQueue(data) {
     if (res.ok) {
       input.value = '';
       await loadQueue();
+    } else {
+      const body = await res.json().catch(() => ({}));
+      formError.textContent =
+        ADD_TRACK_ERROR_MESSAGES[body.error] ?? 'Não foi possível adicionar a música. Tente novamente.';
     }
   };
 
@@ -532,6 +565,7 @@ function renderQueue(data) {
   form.appendChild(submit);
   form.appendChild(playNextBtn);
   addSection.appendChild(form);
+  addSection.appendChild(formError);
   app.appendChild(addSection);
 
   const queueSection = el('section', 'card queue-list');
