@@ -28,6 +28,12 @@ services:
       LAVALINK_HOST: lavalink
       LAVALINK_PORT: 2333
       LAVALINK_PASSWORD: ${LAVALINK_PASSWORD}
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:${PORT:-3000}/healthz']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
 
   lavalink:
     image: ghcr.io/lavalink-devs/lavalink:4.2.2
