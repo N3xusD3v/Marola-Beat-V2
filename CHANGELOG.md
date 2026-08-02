@@ -21,6 +21,10 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 - Log de capacidade do node Lavalink a cada 5 minutos (players tocando, CPU do sistema e do
   Lavalink) — sinal pra saber quando vale a pena escalar pra múltiplos nodes; passo a passo
   documentado em [DEPLOYMENT.md](DEPLOYMENT.md).
+- Política de Privacidade (`/privacy`) e Termos de Uso (`/terms`) — páginas estáticas do painel
+  web, linkadas no rodapé da tela de login. Pré-requisito pra verificação do bot em 100+
+  servidores no Discord Developer Portal. `express.static` ganhou `extensions: ['html']` pra
+  servir essas URLs sem o sufixo `.html`.
 - Painel web: botão "mover para o topo da fila" em cada faixa, pra pular direto pra posição 0 sem
   precisar de vários cliques em "mover para cima" — via novo endpoint
   `POST /api/queue/move-to-top`.
