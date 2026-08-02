@@ -10,9 +10,9 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 - Painel web: botão "mover para o topo da fila" em cada faixa, pra pular direto pra posição 0 sem
   precisar de vários cliques em "mover para cima" — via novo endpoint
   `POST /api/queue/move-to-top`.
-- Painel web: tela de login redesenhada com arte de fundo em estilo pôster preto-e-branco
-  (`public/login-hero.jpg`), mesmo tratamento visual (grayscale + scrim) já usado no card
-  "Tocando agora".
+- Painel web: tela de login redesenhada com arte de fundo (`public/login-hero.jpg`) em vidro
+  fosco — cor original preservada (só escurecida via scrim), não o tratamento grayscale usado no
+  resto do painel. Botão "Entrar com Discord" no azul oficial da marca (#5865F2, "blurple").
 - Painel web: fundo ambiente colorido (`public/app-background.jpg`) na tela pós-login, bem
   escurecido atrás dos cards de vidro — única parte do painel que foge do preto-e-branco de
   propósito.
