@@ -54,6 +54,11 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
   escolhe qual gerenciar numa tela logo depois do login (`GET /api/guilds` lista a interseção
   entre os servidores do usuário e os do bot, `POST /api/guilds/select` define o servidor ativo na
   sessão), com um botão "trocar servidor" no topbar pra voltar à seleção a qualquer momento.
+- Testes automatizados com [Vitest](https://vitest.dev): `npm test` cobre as funções puras de
+  `src/lib/format.ts` (`formatDuration`, `parseTimeToMs`), `src/lib/embeds.ts` (`requesterName`) e
+  o novo `src/web/body-fields.ts` (`stringField`/`numberField`/`booleanField`, extraídos de
+  `queue-routes.ts` pra poder ser testados sem depender de `config/env.ts`). CI passa a rodar
+  `npm test` em todo PR.
 
 ### Alterado
 
@@ -77,6 +82,10 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
   listar os servidores em comum do usuário (suporte a múltiplos servidores); a variável de
   ambiente `WEB_GUILD_ID` (servidor único fixo) foi removida — o servidor ativo agora vem da
   sessão (`selectedGuildId`), escolhido na tela de seleção ou o único disponível quando há só um.
+- `npm run build` passa a usar `tsconfig.build.json` (que estende `tsconfig.json` excluindo
+  `*.test.ts`) em vez de `tsconfig.json` direto — sem isso os arquivos de teste seriam compilados
+  pra `dist/` junto com o resto; `npm run typecheck` continua na `tsconfig.json` original e cobre
+  os testes normalmente.
 
 ### Removido
 
