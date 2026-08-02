@@ -37,6 +37,28 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ---- App (pós-login): fundo ambiente com a arte de ondas azul/roxo, bem escurecido
+   pra ficar sutil atrás dos cards de vidro — ao contrário do hero do login, mantém a
+   cor original em vez do tratamento grayscale usado no resto do painel. ---- */
+
+body:not(.login-active)::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-image: url('/app-background.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+body:not(.login-active)::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: rgba(0, 0, 0, 0.82);
+}
+
 .topbar {
   display: flex;
   align-items: center;
