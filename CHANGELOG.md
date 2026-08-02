@@ -21,6 +21,10 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
   `site.webmanifest` pra "adicionar à tela inicial"), marca no topbar e no card de login do
   painel web, meta tags Open Graph/Twitter Card (`og:image`/`twitter:image`) pra preview ao
   compartilhar o link, e banner no topo do README.
+- Fonte [Audiowide](https://fonts.google.com/specimen/Audiowide) (SIL OFL) auto-hospedada
+  (`public/fonts/audiowide.woff2`, sem CDN de terceiro) aplicada só no wordmark "Marola Beat"
+  (topbar e card de login) — combina com o estilo futurista/eletrônico do logo novo; o resto do
+  texto do painel continua na fonte de sistema.
 
 ### Alterado
 

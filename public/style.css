@@ -1,3 +1,15 @@
+/* Audiowide (SIL OFL, ver public/fonts/audiowide-OFL.txt) — auto-hospedada em vez de puxada de um
+   CDN de terceiro (Google Fonts), evitando request externo por página e a questão de GDPR que
+   isso levanta. Usada só no wordmark "Marola Beat" (topbar e card de login), nunca em texto
+   corrido — é uma display face de peso único, ilegível em blocos de texto. */
+@font-face {
+  font-family: 'Audiowide';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/audiowide.woff2') format('woff2');
+}
+
 :root {
   --bg: #000000;
   --bg-card: rgba(255, 255, 255, 0.05);
@@ -88,9 +100,10 @@ body:not(.login-active)::after {
 }
 
 .topbar h1 {
-  font-size: 1.05rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  font-family: 'Audiowide', system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   margin: 0;
   color: var(--text);
@@ -252,11 +265,12 @@ body.login-active main {
 }
 
 .login-card h2 {
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-family: 'Audiowide', system-ui, sans-serif;
+  font-size: 1.4rem;
+  font-weight: 400;
   color: var(--text);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   margin-bottom: 0.4rem;
 }
 
