@@ -10,6 +10,7 @@ interface Env {
   webGuildId: string;
   publicUrl: string;
   sessionSecret: string;
+  redisUrl: string;
   port: number;
   logLevel: LogLevel;
   lavalinkHost: string;
@@ -53,6 +54,7 @@ export const env: Env = {
   webGuildId: required('WEB_GUILD_ID'),
   publicUrl: required('PUBLIC_URL').replace(/\/+$/, ''),
   sessionSecret: required('SESSION_SECRET'),
+  redisUrl: required('REDIS_URL'),
   port: port(),
   logLevel: logLevel(),
   lavalinkHost: process.env.LAVALINK_HOST || 'lavalink',

@@ -4,10 +4,11 @@ O bot mantém uma conexão WebSocket com o Discord **e** serve um painel web (fi
 reprodução, login com Discord) na porta interna `3000`. O painel só é acessível para quem
 está no momento no mesmo canal de voz que o bot — veja [README.md](README.md#painel-web).
 
-O `docker-compose.yml` sobe dois serviços: `bot` (o que acabou de ser descrito, recebe o domínio
-no Coolify) e `lavalink` (áudio + conexão de voz com o Discord — só acessível pela rede interna do
-compose, nunca exponha porta/domínio pra ele). O primeiro deploy demora um pouco mais porque o
-Lavalink baixa o plugin de YouTube na inicialização.
+O `docker-compose.yml` sobe três serviços: `bot` (o que acabou de ser descrito, recebe o domínio
+no Coolify), `lavalink` (áudio + conexão de voz com o Discord) e `redis` (store da sessão do
+painel web) — os dois últimos só acessíveis pela rede interna do compose, nunca exponha
+porta/domínio pra eles. O primeiro deploy demora um pouco mais porque o Lavalink baixa o plugin
+de YouTube na inicialização.
 
 ## Domínio e OAuth2 (fazer antes do deploy)
 
@@ -37,6 +38,9 @@ Mais simples de manter — o próprio Coolify clona o repositório e builda a im
    - `WEB_GUILD_ID` (ID do servidor cuja fila o painel gerencia)
    - `PUBLIC_URL` = `https://beat.n3xus.dev`
    - `SESSION_SECRET` (string aleatória — `openssl rand -hex 32`)
+   - `REDIS_PASSWORD` (string aleatória — `openssl rand -hex 32`; usada pelos serviços `bot` e
+     `redis` automaticamente pelo `docker-compose.yml` — o `bot` monta a `REDIS_URL` completa a
+     partir dela, não cadastre `REDIS_URL` diretamente)
    - `LAVALINK_PASSWORD` (string aleatória — `openssl rand -hex 32`; compartilhada entre os
      serviços `bot` e `lavalink` automaticamente pelo `docker-compose.yml`, só precisa cadastrar
      uma vez)
@@ -121,8 +125,10 @@ Rode `npm run register` novamente sempre que adicionar, remover ou alterar um co
 ## Checklist de produção
 
 - [ ] `DISCORD_TOKEN`, `DISCORD_APP_ID`, `DISCORD_CLIENT_SECRET`, `WEB_GUILD_ID`, `PUBLIC_URL`,
-      `SESSION_SECRET` e `LAVALINK_PASSWORD` configurados como variáveis de ambiente no Coolify
-      (nunca commitados no repositório)
+      `SESSION_SECRET`, `REDIS_PASSWORD` e `LAVALINK_PASSWORD` configurados como variáveis de
+      ambiente no Coolify (nunca commitados no repositório)
+- [ ] Serviço `redis` sem porta/domínio exposto no Coolify (só o `bot` recebe domínio) — sessão
+      do painel persiste entre redeploys (antes usava `MemoryStore` em memória, perdia tudo)
 - [ ] `YOUTUBE_OAUTH_REFRESH_TOKEN` configurada após completar o device-code flow (veja
       "Autenticação OAuth do YouTube" acima) — sem ela, buscas do YouTube falham em produção
 - [ ] Serviço `lavalink` sem porta/domínio exposto no Coolify (só o `bot` recebe domínio)

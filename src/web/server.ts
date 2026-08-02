@@ -1,6 +1,8 @@
 import path from 'node:path';
+import { RedisStore } from 'connect-redis';
 import express from 'express';
 import session from 'express-session';
+import { createClient } from 'redis';
 import type { Express } from 'express';
 import type { BotClient } from '../types/client.js';
 import { env } from '../config/env.js';
@@ -18,9 +20,24 @@ export function createServer(client: BotClient): Express {
   // o cookie `secure` nunca seria enviado pelo navegador.
   app.set('trust proxy', 1);
 
+  // Store de sessão em Redis em vez do MemoryStore padrão do express-session: o MemoryStore
+  // vaza memória, perde todas as sessões a cada restart/redeploy do container e não escala além
+  // de um processo — os três já viraram dor real em produção. O client enfileira comandos
+  // internamente enquanto conecta, então não é preciso esperar o connect() antes de aceitar
+  // requisições (mesmo padrão do exemplo oficial do connect-redis).
+  const redisClient = createClient({ url: env.redisUrl });
+  redisClient.on('error', (error: unknown) => logger.error('Erro na conexão com o Redis:', error));
+  redisClient.connect().catch((error: unknown) => logger.error('Erro ao conectar no Redis:', error));
+
+  const redisStore = new RedisStore({
+    client: redisClient,
+    prefix: 'marola-beat:sess:',
+  });
+
   app.use(express.json({ limit: '10kb' }));
   app.use(
     session({
+      store: redisStore,
       name: 'marola.sid',
       secret: env.sessionSecret,
       resave: false,

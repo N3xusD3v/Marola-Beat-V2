@@ -7,6 +7,10 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ### Adicionado
 
+- Sessão do painel web agora persiste em Redis (`connect-redis`) em vez do `MemoryStore` padrão
+  do `express-session` — sobrevive a redeploys e deixa de ser um bloqueador pra rodar mais de uma
+  réplica do bot. Novo serviço `redis` no `docker-compose.yml` e nova env var `REDIS_PASSWORD`
+  (o `bot` monta a `REDIS_URL` completa a partir dela).
 - Painel web: botão "mover para o topo da fila" em cada faixa, pra pular direto pra posição 0 sem
   precisar de vários cliques em "mover para cima" — via novo endpoint
   `POST /api/queue/move-to-top`.
