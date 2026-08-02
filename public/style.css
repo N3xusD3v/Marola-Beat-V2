@@ -335,6 +335,75 @@ body.login-active main {
   box-shadow: 0 8px 28px rgba(88, 101, 242, 0.5);
 }
 
+/* ---- Seletor de servidor: mostrado depois do login quando o bot está em mais de um servidor
+   em comum com o usuário (ver GET /api/guilds em app.js) ---- */
+
+.guild-picker-card {
+  max-width: 420px;
+  width: 100%;
+  margin: 2rem auto;
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+}
+
+.guild-picker-card p {
+  color: var(--text-muted);
+  margin: 0.4rem 0 0;
+}
+
+.guild-list {
+  list-style: none;
+  margin: 1.6rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.guild-option {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.guild-option:hover {
+  background: rgba(255, 255, 255, 0.14);
+  transform: translateY(-1px);
+}
+
+.guild-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+
+.guild-icon-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card-strong);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
 .btn {
   display: inline-flex;
   align-items: center;

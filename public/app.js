@@ -47,6 +47,8 @@ const ICON_PATHS = {
     '<path d="M16 5H3" /><path d="M11 12H3" /><path d="M11 19H3" /><path d="M21 16V5" /><circle cx="18" cy="16" r="3" />',
   'shield-check':
     '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /><path d="m9 12 2 2 4-4" />',
+  repeat:
+    '<path d="m17 2 4 4-4 4" /><path d="M3 11v-1a4 4 0 0 1 4-4h14" /><path d="m7 22-4-4 4-4" /><path d="M21 13v1a4 4 0 0 1-4 4H3" />',
 };
 
 // Marca oficial do Discord (https://github.com/simple-icons/simple-icons, CC0) — path único
@@ -80,6 +82,9 @@ let pollTimer = null;
 let tickTimer = null;
 let lastData = null;
 let localPositionMs = 0;
+// Servidores em comum entre o usuário e o bot (ver GET /api/guilds) — guardado só pra saber se
+// vale mostrar o botão "trocar servidor" no topbar, sem precisar rebuscar a cada clique.
+let cachedGuilds = [];
 // renderQueue() reconstrói o DOM inteiro a cada poll (ver loadQueue()), então sem isso o popover
 // de volume fecharia sozinho a cada 4s mesmo com o usuário ainda mexendo nele.
 let volumePopoverOpen = false;
@@ -175,6 +180,120 @@ function renderUser(user) {
     renderLogin();
   });
   userBox.appendChild(logout);
+}
+
+function updateGuildSwitcher() {
+  const existing = userBox.querySelector('.guild-switch-btn');
+  if (existing) existing.remove();
+  if (cachedGuilds.length < 2) return;
+
+  const btn = el('button', 'icon-btn icon-btn-ghost guild-switch-btn');
+  btn.type = 'button';
+  btn.title = 'Trocar servidor';
+  btn.setAttribute('aria-label', 'Trocar servidor');
+  btn.appendChild(icon('repeat'));
+  btn.addEventListener('click', () => {
+    stopPolling();
+    renderGuildPicker(cachedGuilds);
+  });
+
+  // Insere antes do botão de sair (sempre o último .icon-btn-ghost do userBox nesse ponto).
+  const logoutBtn = userBox.querySelector('.icon-btn-ghost');
+  if (logoutBtn) userBox.insertBefore(btn, logoutBtn);
+  else userBox.appendChild(btn);
+}
+
+function renderGuildPicker(guilds) {
+  app.textContent = '';
+  const box = el('div', 'card guild-picker-card');
+  box.appendChild(el('div', 'login-eyebrow', 'Escolha um servidor'));
+  box.appendChild(el('h2', null, 'Marola Beat'));
+  box.appendChild(el('p', null, 'O bot está em mais de um servidor seu — escolha qual gerenciar.'));
+
+  const list = el('ul', 'guild-list');
+  for (const guild of guilds) {
+    const item = el('li');
+    const option = el('button', 'guild-option');
+    option.type = 'button';
+    if (guild.icon) {
+      const img = document.createElement('img');
+      img.src = guild.icon;
+      img.alt = '';
+      img.className = 'guild-icon';
+      option.appendChild(img);
+    } else {
+      const placeholder = el(
+        'div',
+        'guild-icon guild-icon-placeholder',
+        guild.name.slice(0, 2).toUpperCase(),
+      );
+      option.appendChild(placeholder);
+    }
+    option.appendChild(el('span', null, guild.name));
+    option.addEventListener('click', () => void chooseGuildAndStart(guild.id));
+    item.appendChild(option);
+    list.appendChild(item);
+  }
+  box.appendChild(list);
+  app.appendChild(box);
+}
+
+async function selectGuild(guildId) {
+  const res = await api('/api/guilds/select', {
+    method: 'POST',
+    body: JSON.stringify({ guildId }),
+  });
+  if (!res.ok) {
+    renderBlocked('Não foi possível selecionar esse servidor. Tente novamente.');
+    return false;
+  }
+  return true;
+}
+
+async function chooseGuildAndStart(guildId) {
+  const ok = await selectGuild(guildId);
+  if (!ok) return;
+  await startQueueLoop();
+}
+
+// Garante que a sessão tem um servidor selecionado antes de carregar a fila — auto-seleciona se
+// só há um servidor em comum, mostra um seletor se há mais de um, ou uma mensagem de erro se
+// nenhum. Retorna `true` só quando já dá pra seguir direto pra startQueueLoop(); nos outros casos
+// já deixou a tela certa renderizada (login, seletor ou erro) e quem chamou deve parar por ali.
+async function ensureGuildSelected() {
+  const res = await api('/api/guilds');
+
+  if (res.status === 409) {
+    // Sessão de antes do escopo OAuth `guilds` existir — não temos os servidores do usuário
+    // guardados, só um login novo resolve.
+    await api('/auth/logout', { method: 'POST' });
+    renderLogin();
+    return false;
+  }
+  if (!res.ok) {
+    renderBlocked('Não foi possível carregar seus servidores. Tente novamente.');
+    return false;
+  }
+
+  const data = await res.json();
+  cachedGuilds = data.guilds;
+  updateGuildSwitcher();
+
+  if (data.selectedGuildId) return true;
+
+  if (data.guilds.length === 0) {
+    renderBlocked(
+      'O bot não está em nenhum servidor seu. Peça pra alguém adicionar o bot a um servidor primeiro.',
+    );
+    return false;
+  }
+
+  if (data.guilds.length === 1) {
+    return selectGuild(data.guilds[0].id);
+  }
+
+  renderGuildPicker(data.guilds);
+  return false;
 }
 
 function actionButton(iconName, title, onClick, disabled) {
@@ -469,6 +588,14 @@ async function loadQueue() {
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     stopTicking();
+    if (body.error === 'no_guild_selected') {
+      // Sessão perdeu a seleção de servidor no meio do caminho (raro) — volta pro seletor em
+      // vez de deixar o usuário travado numa mensagem de erro sem saída.
+      stopPolling();
+      const ready = await ensureGuildSelected();
+      if (ready) await startQueueLoop();
+      return;
+    }
     renderBlocked(ERROR_MESSAGES[body.error] ?? 'Não foi possível carregar a fila.');
     return;
   }
@@ -627,6 +754,11 @@ function stopPolling() {
   stopTicking();
 }
 
+async function startQueueLoop() {
+  await loadQueue();
+  pollTimer = setInterval(loadQueue, POLL_INTERVAL_MS);
+}
+
 async function init() {
   const res = await api('/api/me');
   if (res.status === 401) {
@@ -635,8 +767,11 @@ async function init() {
   }
   const user = await res.json();
   renderUser(user);
-  await loadQueue();
-  pollTimer = setInterval(loadQueue, POLL_INTERVAL_MS);
+
+  const ready = await ensureGuildSelected();
+  if (!ready) return; // login/seletor/erro já renderizado; o seletor chama startQueueLoop() no clique
+
+  await startQueueLoop();
 }
 
 void init();

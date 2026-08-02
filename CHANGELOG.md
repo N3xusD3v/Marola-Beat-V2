@@ -43,6 +43,10 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 - Painel web: ícone de volume muda pra "mudo" quando o volume está em 0%.
 - Painel web: popover de volume agora fecha com `Esc` (devolvendo o foco pro botão), além de
   clique fora.
+- Painel web: suporte a múltiplos servidores — quem tiver o bot em mais de um servidor em comum
+  escolhe qual gerenciar numa tela logo depois do login (`GET /api/guilds` lista a interseção
+  entre os servidores do usuário e os do bot, `POST /api/guilds/select` define o servidor ativo na
+  sessão), com um botão "trocar servidor" no topbar pra voltar à seleção a qualquer momento.
 
 ### Alterado
 
@@ -59,6 +63,10 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
   mouse mostra o texto completo quando fica truncado.
 - `Dockerfile`: imagem base `node:22-alpine` → `node:24-alpine` (LTS atual); CI também atualizado
   para rodar em Node 24.
+- Login OAuth2 do painel web passou a pedir o escopo `guilds` além de `identify`, necessário pra
+  listar os servidores em comum do usuário (suporte a múltiplos servidores); a variável de
+  ambiente `WEB_GUILD_ID` (servidor único fixo) foi removida — o servidor ativo agora vem da
+  sessão (`selectedGuildId`), escolhido na tela de seleção ou o único disponível quando há só um.
 
 ### Removido
 

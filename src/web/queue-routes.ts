@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import type { SearchResult, Track, UnresolvedTrack } from 'lavalink-client';
 import type { BotClient } from '../types/client.js';
-import { env } from '../config/env.js';
 import { requesterName } from '../lib/embeds.js';
 import { formatDuration } from '../lib/format.js';
 import { logger } from '../lib/logger.js';
@@ -58,7 +57,7 @@ export function createQueueRouter(client: BotClient) {
   router.use(requireVoiceMember(client));
 
   router.get('/', (req, res) => {
-    const player = client.lavalink.getPlayer(env.webGuildId);
+    const player = client.lavalink.getPlayer(req.voice!.guildId);
     res.json({
       current: player?.queue.current ? toDTO(player.queue.current) : null,
       positionMs: player?.position ?? 0,
@@ -79,7 +78,7 @@ export function createQueueRouter(client: BotClient) {
       }
       const playNext = booleanField(req.body, 'playNext');
 
-      const guild = client.guilds.cache.get(env.webGuildId);
+      const guild = client.guilds.cache.get(req.voice!.guildId);
       const voiceChannelId = req.voice!.voiceChannelId;
       if (!guild || !guild.channels.cache.has(voiceChannelId)) {
         res.status(409).json({ error: 'voice_channel_unavailable' });
@@ -140,7 +139,7 @@ export function createQueueRouter(client: BotClient) {
         return;
       }
 
-      const player = client.lavalink.getPlayer(env.webGuildId);
+      const player = client.lavalink.getPlayer(req.voice!.guildId);
       const size = player?.queue.tracks.length ?? 0;
       const target = direction === 'up' ? index - 1 : index + 1;
 
@@ -165,7 +164,7 @@ export function createQueueRouter(client: BotClient) {
   router.post('/move-to-top', (req, res) => {
     void (async () => {
       const index = numberField(req.body, 'index');
-      const player = client.lavalink.getPlayer(env.webGuildId);
+      const player = client.lavalink.getPlayer(req.voice!.guildId);
       const size = player?.queue.tracks.length ?? 0;
 
       if (index === undefined || !Number.isInteger(index) || !player || index < 0 || index >= size) {
@@ -190,7 +189,7 @@ export function createQueueRouter(client: BotClient) {
   router.post('/remove', (req, res) => {
     void (async () => {
       const index = numberField(req.body, 'index');
-      const player = client.lavalink.getPlayer(env.webGuildId);
+      const player = client.lavalink.getPlayer(req.voice!.guildId);
       const size = player?.queue.tracks.length ?? 0;
 
       if (index === undefined || !Number.isInteger(index) || !player || index < 0 || index >= size) {
@@ -205,7 +204,7 @@ export function createQueueRouter(client: BotClient) {
 
   router.post('/pause', (req, res) => {
     void (async () => {
-      const player = client.lavalink.getPlayer(env.webGuildId);
+      const player = client.lavalink.getPlayer(req.voice!.guildId);
       // `player.playing` is false while paused, so guard on the current track instead.
       if (!player || !player.queue.current) {
         res.status(409).json({ error: 'nothing_playing' });
@@ -222,7 +221,7 @@ export function createQueueRouter(client: BotClient) {
 
   router.post('/skip', (req, res) => {
     void (async () => {
-      const player = client.lavalink.getPlayer(env.webGuildId);
+      const player = client.lavalink.getPlayer(req.voice!.guildId);
       if (!player || !player.queue.current) {
         res.status(409).json({ error: 'nothing_playing' });
         return;
@@ -234,7 +233,7 @@ export function createQueueRouter(client: BotClient) {
 
   router.post('/previous', (req, res) => {
     void (async () => {
-      const player = client.lavalink.getPlayer(env.webGuildId);
+      const player = client.lavalink.getPlayer(req.voice!.guildId);
       if (!player || player.queue.previous.length === 0) {
         res.status(409).json({ error: 'no_previous' });
         return;
@@ -247,7 +246,7 @@ export function createQueueRouter(client: BotClient) {
 
   router.post('/clear', (req, res) => {
     void (async () => {
-      const player = client.lavalink.getPlayer(env.webGuildId);
+      const player = client.lavalink.getPlayer(req.voice!.guildId);
       if (!player || player.queue.tracks.length === 0) {
         res.status(409).json({ error: 'queue_empty' });
         return;
@@ -264,7 +263,7 @@ export function createQueueRouter(client: BotClient) {
         res.status(400).json({ error: 'invalid_volume' });
         return;
       }
-      const player = client.lavalink.getPlayer(env.webGuildId);
+      const player = client.lavalink.getPlayer(req.voice!.guildId);
       if (!player) {
         res.status(409).json({ error: 'nothing_playing' });
         return;
@@ -277,7 +276,7 @@ export function createQueueRouter(client: BotClient) {
   router.post('/seek', (req, res) => {
     void (async () => {
       const positionMs = numberField(req.body, 'positionMs');
-      const player = client.lavalink.getPlayer(env.webGuildId);
+      const player = client.lavalink.getPlayer(req.voice!.guildId);
       if (!player || !player.queue.current) {
         res.status(409).json({ error: 'nothing_playing' });
         return;
@@ -297,7 +296,7 @@ export function createQueueRouter(client: BotClient) {
 
   router.post('/leave', (req, res) => {
     void (async () => {
-      const player = client.lavalink.getPlayer(env.webGuildId);
+      const player = client.lavalink.getPlayer(req.voice!.guildId);
       if (!player) {
         res.status(409).json({ error: 'not_connected' });
         return;
