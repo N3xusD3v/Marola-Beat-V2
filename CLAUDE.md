@@ -17,15 +17,23 @@ para a config do node e o serviço `lavalink` em `docker-compose.yml`.
 ```bash
 npm run dev         # bot em modo dev com reload (tsx watch)
 npm run register     # registra os slash commands no Discord
-npm run typecheck    # tsc --noEmit
-npm run lint          # eslint .
-npm run format         # prettier --write .
-npm run build           # compila para dist/
-npm start                # roda a build de produção (dist/index.js) — usado pelo Dockerfile
+npm run typecheck    # tsc --noEmit (cobre src/**/*.test.ts também)
+npm test              # vitest run
+npm run lint            # eslint .
+npm run format           # prettier --write .
+npm run build              # compila para dist/ via tsconfig.build.json (exclui *.test.ts)
+npm start                    # roda a build de produção (dist/index.js) — usado pelo Dockerfile
 ```
 
-Sempre rode `typecheck`, `lint` e `build` antes de considerar uma mudança pronta — o CI roda os
-três em todo PR e falha o merge se algum quebrar.
+Sempre rode `typecheck`, `lint`, `test` e `build` antes de considerar uma mudança pronta — o CI
+roda os quatro em todo PR e falha o merge se algum quebrar. Testes (Vitest, arquivos
+`*.test.ts` ao lado do módulo testado) cobrem só funções puras/lógica isolada
+(`src/lib/format.ts`, `src/lib/embeds.ts`, `src/web/body-fields.ts`) — `discord.js`/Lavalink em si
+continuam cobertos só por teste manual/E2E, não faz sentido mockar a API deles em testes
+unitários. `src/web/body-fields.ts` existe separado de `queue-routes.ts` justamente pra isso: as
+três funções (`stringField`/`numberField`/`booleanField`) não dependem de `config/env.ts` (que
+lança erro na importação se faltar variável de ambiente), então dá pra testá-las isoladas sem
+precisar de env vars fake.
 
 ## Estrutura
 
@@ -66,8 +74,10 @@ três em todo PR e falha o merge se algum quebrar.
   `guild.voiceStates.cache`, não a API REST — mais rápido), `queue-routes.ts` expõe
   `GET/POST /api/queue*` (`add`, `move`, `move-to-top`, `remove`, `clear`, `pause`, `skip`,
   `previous`, `volume`, `seek`, `leave`), sempre operando na guild de `req.voice.guildId` (setado
-  pelo middleware, nunca uma env var fixa). `move` só troca posições adjacentes: `player.queue`
-  não tem um método `swap`, então isso é feito com
+  pelo middleware, nunca uma env var fixa) e usando os helpers de leitura de `req.body` de
+  `body-fields.ts` (`stringField`/`numberField`/`booleanField`) — ficaram num módulo à parte pra
+  poder ser testados sem depender de `config/env.ts`. `move` só troca posições adjacentes:
+  `player.queue` não tem um método `swap`, então isso é feito com
   `player.queue.splice(i, 2, [trackAtI+1, trackAtI])`. `move-to-top` pula direto pra posição 0
   vindo de qualquer índice, com dois `splice` (remove do índice de origem, insere no início) já
   que `splice` só opera num índice por chamada.

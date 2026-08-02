@@ -4,6 +4,7 @@ import type { BotClient } from '../types/client.js';
 import { requesterName } from '../lib/embeds.js';
 import { formatDuration } from '../lib/format.js';
 import { logger } from '../lib/logger.js';
+import { booleanField, numberField, stringField } from './body-fields.js';
 import { requireVoiceMember } from './middleware.js';
 
 interface TrackDTO {
@@ -34,23 +35,6 @@ function toDTO(track: Track | UnresolvedTrack): TrackDTO {
 }
 
 const MAX_QUERY_LENGTH = 300;
-
-function stringField(body: unknown, field: string): string | undefined {
-  if (typeof body !== 'object' || body === null) return undefined;
-  const value = (body as Record<string, unknown>)[field];
-  return typeof value === 'string' ? value : undefined;
-}
-
-function numberField(body: unknown, field: string): number | undefined {
-  if (typeof body !== 'object' || body === null) return undefined;
-  const value = (body as Record<string, unknown>)[field];
-  return typeof value === 'number' ? value : undefined;
-}
-
-function booleanField(body: unknown, field: string): boolean {
-  if (typeof body !== 'object' || body === null) return false;
-  return (body as Record<string, unknown>)[field] === true;
-}
 
 export function createQueueRouter(client: BotClient) {
   const router = Router();
