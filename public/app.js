@@ -112,10 +112,12 @@ const LOGIN_FEATURES = [
 ];
 
 function renderLogin() {
+  document.body.classList.add('login-active');
   userBox.textContent = '';
   app.textContent = '';
   const box = el('div', 'card login-card');
   box.appendChild(icon('music-4', 'login-mark'));
+  box.appendChild(el('div', 'login-eyebrow', 'Painel Web'));
   box.appendChild(el('h2', null, 'Marola Beat'));
   box.appendChild(el('p', null, 'Entre com sua conta do Discord para gerenciar a fila.'));
 
@@ -137,6 +139,7 @@ function renderLogin() {
 }
 
 function renderBlocked(message) {
+  document.body.classList.remove('login-active');
   app.textContent = '';
   const box = el('div', 'card blocked-card');
   box.appendChild(el('p', null, message));
@@ -144,6 +147,7 @@ function renderBlocked(message) {
 }
 
 function renderUser(user) {
+  document.body.classList.remove('login-active');
   userBox.textContent = '';
   const avatarUrl = user.avatar
     ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=32`

@@ -10,6 +10,9 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 - Painel web: botão "mover para o topo da fila" em cada faixa, pra pular direto pra posição 0 sem
   precisar de vários cliques em "mover para cima" — via novo endpoint
   `POST /api/queue/move-to-top`.
+- Painel web: tela de login redesenhada com arte de fundo em estilo pôster preto-e-branco
+  (`public/login-hero.jpg`), mesmo tratamento visual (grayscale + scrim) já usado no card
+  "Tocando agora".
 
 ### Alterado
 
