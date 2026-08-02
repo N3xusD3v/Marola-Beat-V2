@@ -1,8 +1,12 @@
 import { randomBytes } from 'node:crypto';
 import { Router } from 'express';
 import type { BotClient } from '../types/client.js';
-import { env } from '../config/env.js';
-import { buildAuthorizeUrl, exchangeCodeForToken, fetchDiscordUser } from './discord-oauth.js';
+import {
+  buildAuthorizeUrl,
+  exchangeCodeForToken,
+  fetchDiscordUser,
+  fetchUserGuildIds,
+} from './discord-oauth.js';
 import { logger } from '../lib/logger.js';
 
 export function createAuthRouter(client: BotClient) {
@@ -26,7 +30,15 @@ export function createAuthRouter(client: BotClient) {
 
       try {
         const accessToken = await exchangeCodeForToken(code);
-        req.session.user = await fetchDiscordUser(accessToken);
+        const [user, userGuildIds] = await Promise.all([
+          fetchDiscordUser(accessToken),
+          fetchUserGuildIds(accessToken),
+        ]);
+        req.session.user = user;
+        req.session.userGuildIds = userGuildIds;
+        // Limpa uma seleção antiga (ex: login de novo depois de sair) — o usuário escolhe de
+        // novo via GET /api/guilds + POST /api/guilds/select.
+        req.session.selectedGuildId = undefined;
         res.redirect('/');
       } catch (error) {
         logger.error('Erro no callback OAuth2:', error);
@@ -49,9 +61,12 @@ export function createAuthRouter(client: BotClient) {
         return;
       }
 
-      // Busca o GuildMember pra mostrar o apelido do servidor/nome de exibição no topbar, não o
-      // @username da conta (mesmo motivo do requester da fila, ver queue-routes.ts).
-      const guild = client.guilds.cache.get(env.webGuildId);
+      // Busca o GuildMember do servidor selecionado pra mostrar o apelido/nome de exibição no
+      // topbar, não o @username da conta (mesmo motivo do requester da fila, ver
+      // queue-routes.ts). Sem servidor selecionado ainda (ex: durante a tela de seleção), cai de
+      // volta pro username — o frontend rechama /api/me depois de POST /api/guilds/select.
+      const selectedGuildId = req.session.selectedGuildId;
+      const guild = selectedGuildId ? client.guilds.cache.get(selectedGuildId) : undefined;
       const member = await guild?.members.fetch(user.id).catch(() => undefined);
 
       res.json({ ...user, displayName: member?.displayName ?? user.username });

@@ -1,6 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
 import type { BotClient } from '../types/client.js';
-import { env } from '../config/env.js';
 
 export interface VoiceContext {
   guildId: string;
@@ -17,9 +16,9 @@ declare global {
 }
 
 /**
- * Requer login + estar no momento no mesmo canal de voz que o bot está usando
- * na guild configurada (WEB_GUILD_ID). Se o bot ainda não estiver conectado a
- * nenhum canal, qualquer canal de voz da guild é aceito.
+ * Requer login + servidor selecionado (ver guilds-routes.ts) + estar no momento no mesmo canal
+ * de voz que o bot está usando naquele servidor. Se o bot ainda não estiver conectado a nenhum
+ * canal, qualquer canal de voz do servidor é aceito.
  */
 export function requireVoiceMember(client: BotClient) {
   return (req: Request, res: Response, next: NextFunction): void => {
@@ -28,7 +27,13 @@ export function requireVoiceMember(client: BotClient) {
       return;
     }
 
-    const guild = client.guilds.cache.get(env.webGuildId);
+    const guildId = req.session.selectedGuildId;
+    if (!guildId) {
+      res.status(409).json({ error: 'no_guild_selected' });
+      return;
+    }
+
+    const guild = client.guilds.cache.get(guildId);
     if (!guild) {
       res.status(503).json({ error: 'bot_not_ready' });
       return;
@@ -40,13 +45,13 @@ export function requireVoiceMember(client: BotClient) {
       return;
     }
 
-    const activeChannelId = client.lavalink.getPlayer(env.webGuildId)?.voiceChannelId;
+    const activeChannelId = client.lavalink.getPlayer(guildId)?.voiceChannelId;
     if (activeChannelId && activeChannelId !== voiceChannelId) {
       res.status(403).json({ error: 'wrong_voice_channel' });
       return;
     }
 
-    req.voice = { guildId: env.webGuildId, voiceChannelId };
+    req.voice = { guildId, voiceChannelId };
     next();
   };
 }

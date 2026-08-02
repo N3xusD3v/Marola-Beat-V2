@@ -10,6 +10,7 @@ import type { BotClient } from '../types/client.js';
 import { env } from '../config/env.js';
 import { logger } from '../lib/logger.js';
 import { createAuthRouter } from './auth.js';
+import { createGuildsRouter } from './guilds-routes.js';
 import { createQueueRouter } from './queue-routes.js';
 import '../types/session.js';
 
@@ -101,6 +102,7 @@ export function createServer(client: BotClient): Express {
   app.use('/api/queue', queueRateLimit);
 
   app.use(createAuthRouter(client));
+  app.use('/api/guilds', createGuildsRouter(client));
   app.use('/api/queue', createQueueRouter(client));
   app.use(express.static(path.join(process.cwd(), 'public')));
 

@@ -36,8 +36,10 @@ Além dos comandos de barra, o bot serve um painel web (`PUBLIC_URL`, ex.
 `https://beat.n3xus.dev`) para gerenciar a fila do canal de voz:
 
 - **Login com Discord (OAuth2)** — sem contas ou senhas próprias.
+- **Multi-servidor**: funciona em qualquer servidor onde o bot estiver — se o usuário tiver o bot
+  em mais de um servidor em comum, escolhe qual gerenciar logo depois do login.
 - **Acesso restrito**: só quem está **naquele momento** no mesmo canal de voz que o bot pode ver
-  ou mexer na fila. Sair do canal revoga o acesso na próxima ação.
+  ou mexer na fila do servidor selecionado. Sair do canal revoga o acesso na próxima ação.
 - **Adicionar música** por nome ou link.
 - **Player** com a faixa atual, barra de progresso clicável (pula pra posição), volume,
   pausar/retomar, pular, voltar pra faixa anterior e sair do canal.
@@ -79,8 +81,8 @@ cd Marola-Beat-V2
 
 # 2. Configure as variáveis de ambiente
 cp .env.example .env
-# Preencha DISCORD_TOKEN, DISCORD_APP_ID, DISCORD_CLIENT_SECRET, WEB_GUILD_ID,
-# PUBLIC_URL (ex: http://localhost:3000), SESSION_SECRET e LAVALINK_PASSWORD no .env
+# Preencha DISCORD_TOKEN, DISCORD_APP_ID, DISCORD_CLIENT_SECRET, PUBLIC_URL
+# (ex: http://localhost:3000), SESSION_SECRET e LAVALINK_PASSWORD no .env
 
 # 3. Instale as dependências
 npm install
