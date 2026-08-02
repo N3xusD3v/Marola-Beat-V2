@@ -5,6 +5,11 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ## [Unreleased]
 
+### Alterado
+
+- `Dockerfile`: imagem base `node:22-alpine` → `node:24-alpine` (LTS atual); CI também atualizado
+  para rodar em Node 24.
+
 ## [3.0.0] - 2026-08-02
 
 ### Adicionado

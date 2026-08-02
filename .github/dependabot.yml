@@ -41,3 +41,10 @@ updates:
       interval: 'weekly'
     commit-message:
       prefix: 'chore(docker)'
+    ignore:
+      # Node só promove majors pares (20, 22, 24...) a LTS; ímpares (23, 25...) são releases
+      # "Current" de ~6 meses de vida, sem suporte de segurança prolongado — não adequados pra
+      # imagem de produção. Bump de major pro node precisa ser feito manualmente, escolhendo
+      # sempre um LTS.
+      - dependency-name: 'node'
+        update-types: ['version-update:semver-major']
