@@ -86,6 +86,28 @@ a config e a variável de ambiente continuam corretas. A correção é repetir o
 zero: limpe o valor de `YOUTUBE_OAUTH_REFRESH_TOKEN`, redeploy, pegue a nova URL/código do
 device-code flow nos logs e cadastre o novo token.
 
+## Escalando para múltiplos nós Lavalink (quando o volume exigir)
+
+Hoje só existe um node Lavalink — se ele cair, a reprodução para em **todos** os servidores ao
+mesmo tempo. Um Lavalink com 2GB de RAM aguenta ~200-300 streams simultâneos confortavelmente, então
+isso só costuma virar um problema real com uso em escala. O bot já loga a capacidade do node atual
+a cada 5 minutos (`Capacidade do node Lavalink "main": X/Y players tocando, CPU sistema Z%, CPU
+Lavalink W%` — veja `src/lib/lavalink.ts`); use esses números pra decidir quando vale a pena.
+
+Quando chegar a hora, **não precisa reescrever nada** — o `lavalink-client` (a lib já usada aqui)
+tem suporte nativo a múltiplos nodes com seleção automática do menos ocupado, então só precisa
+adicionar mais entradas:
+
+1. Em `docker-compose.yml`, duplique o serviço `lavalink` com um nome diferente (ex: `lavalink2`),
+   reaproveitando a mesma imagem, o mesmo volume de `application.yml` (ou um novo, se quiser configs
+   de fontes diferentes por node) e a mesma `LAVALINK_SERVER_PASSWORD`. Mantenha sem `ports:`/domínio
+   exposto, igual ao node atual.
+2. Em `src/lib/lavalink.ts`, adicione uma nova entrada no array `nodes` do `LavalinkManager` com um
+   `id` diferente (ex: `'secondary'`) e `host` apontando pro nome do novo serviço (ex: `'lavalink2'`
+   — nome do serviço do compose, resolvido pela rede interna do Docker).
+3. Redeploy. O `lavalink-client` distribui novos players entre os nodes conectados automaticamente
+   (via `leastUsedNodes()` internamente) — nenhuma outra mudança de código é necessária.
+
 ## DNS no Cloudflare
 
 1. Crie um registro **A** (ou CNAME) para `beat.n3xus.dev` apontando para o IP do servidor onde

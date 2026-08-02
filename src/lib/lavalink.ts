@@ -10,6 +10,8 @@ import type { BotClient } from '../types/client.js';
  * A conexão de voz (UDP) com o Discord acontece no node Lavalink, não neste processo —
  * veja lavalink/application.yml e o serviço `lavalink` no docker-compose.yml.
  */
+const CAPACITY_LOG_INTERVAL_MS = 5 * 60 * 1000;
+
 export function createLavalinkManager(client: BotClient): LavalinkManager {
   const manager = new LavalinkManager({
     nodes: [
@@ -72,6 +74,21 @@ export function createLavalinkManager(client: BotClient): LavalinkManager {
       logger.debug(`[lavalink:${moduleName}] ${JSON.stringify(info)}`);
     });
   }
+
+  // Sinal de "hora de escalar pra mais de um node" (issue #30) — lavalink-client já suporta múltiplos
+  // nodes nativamente (só adicionar entradas em `nodes` acima), só falta saber quando. `node.stats` é
+  // mantido atualizado pelo próprio Lavalink via um intervalo interno, então só precisamos ler e logar.
+  const capacityLogInterval = setInterval(() => {
+    for (const node of manager.nodeManager.nodes.values()) {
+      if (!node.connected) continue;
+      const { players, playingPlayers, cpu } = node.stats;
+      logger.info(
+        `Capacidade do node Lavalink "${node.id}": ${playingPlayers}/${players} players tocando, ` +
+          `CPU sistema ${(cpu.systemLoad * 100).toFixed(1)}%, CPU Lavalink ${(cpu.lavalinkLoad * 100).toFixed(1)}%`,
+      );
+    }
+  }, CAPACITY_LOG_INTERVAL_MS);
+  capacityLogInterval.unref();
 
   return manager;
 }

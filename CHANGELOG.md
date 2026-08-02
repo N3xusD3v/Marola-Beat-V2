@@ -18,6 +18,9 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 - Endpoint `GET /healthz` (fora de sessão/autenticação) reportando se o bot está conectado ao
   Discord, e healthcheck correspondente no serviço `bot` do `docker-compose.yml` (só o `lavalink`
   tinha um até agora).
+- Log de capacidade do node Lavalink a cada 5 minutos (players tocando, CPU do sistema e do
+  Lavalink) — sinal pra saber quando vale a pena escalar pra múltiplos nodes; passo a passo
+  documentado em [DEPLOYMENT.md](DEPLOYMENT.md).
 - Painel web: botão "mover para o topo da fila" em cada faixa, pra pular direto pra posição 0 sem
   precisar de vários cliques em "mover para cima" — via novo endpoint
   `POST /api/queue/move-to-top`.
