@@ -5,6 +5,8 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-08-02
+
 ### Adicionado
 
 - Comandos `/volume`, `/remove`, `/clear`, `/previous`, `/seek` e `/leave`, fechando a paridade de
