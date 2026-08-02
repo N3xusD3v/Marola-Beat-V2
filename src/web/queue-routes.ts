@@ -162,6 +162,31 @@ export function createQueueRouter(client: BotClient) {
     })();
   });
 
+  router.post('/move-to-top', (req, res) => {
+    void (async () => {
+      const index = numberField(req.body, 'index');
+      const player = client.lavalink.getPlayer(env.webGuildId);
+      const size = player?.queue.tracks.length ?? 0;
+
+      if (index === undefined || !Number.isInteger(index) || !player || index < 0 || index >= size) {
+        res.status(400).json({ error: 'out_of_range' });
+        return;
+      }
+
+      if (index > 0) {
+        const track = player.queue.tracks[index];
+        if (!track) {
+          res.status(400).json({ error: 'out_of_range' });
+          return;
+        }
+        await player.queue.splice(index, 1);
+        await player.queue.splice(0, 0, track);
+      }
+
+      res.status(204).end();
+    })();
+  });
+
   router.post('/remove', (req, res) => {
     void (async () => {
       const index = numberField(req.body, 'index');

@@ -5,6 +5,12 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ## [Unreleased]
 
+### Adicionado
+
+- Painel web: botão "mover para o topo da fila" em cada faixa, pra pular direto pra posição 0 sem
+  precisar de vários cliques em "mover para cima" — via novo endpoint
+  `POST /api/queue/move-to-top`.
+
 ### Alterado
 
 - `Dockerfile`: imagem base `node:22-alpine` → `node:24-alpine` (LTS atual); CI também atualizado

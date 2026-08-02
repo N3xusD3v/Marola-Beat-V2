@@ -56,9 +56,11 @@ três em todo PR e falha o merge se algum quebrar.
   logout, `middleware.ts` (`requireVoiceMember`) exige sessão válida **e** estar no momento no
   mesmo canal de voz que o bot (via `guild.voiceStates.cache`, não a API REST — é mais rápido e
   não precisa de escopo `guilds`/`guilds.members.read`), `queue-routes.ts` expõe
-  `GET/POST /api/queue*` (`add`, `move`, `remove`, `clear`, `pause`, `skip`, `previous`, `volume`,
-  `seek`, `leave`). Reordenar só troca posições adjacentes: `player.queue` não tem um método
-  `swap`, então isso é feito com `player.queue.splice(i, 2, [trackAtI+1, trackAtI])`.
+  `GET/POST /api/queue*` (`add`, `move`, `move-to-top`, `remove`, `clear`, `pause`, `skip`,
+  `previous`, `volume`, `seek`, `leave`). `move` só troca posições adjacentes: `player.queue` não
+  tem um método `swap`, então isso é feito com `player.queue.splice(i, 2, [trackAtI+1, trackAtI])`.
+  `move-to-top` pula direto pra posição 0 vindo de qualquer índice, com dois `splice` (remove do
+  índice de origem, insere no início) já que `splice` só opera num índice por chamada.
 - `public/` — frontend do painel, JS puro sem build step (fora do projeto TypeScript,
   ignorado pelo ESLint/tsconfig de propósito). Se adicionar algo aqui, não assuma tipos do `src/`.
 - `lavalink/application.yml` — config do node Lavalink: fontes de áudio habilitadas

@@ -181,7 +181,7 @@ function actionButton(iconName, title, onClick, disabled) {
   return btn;
 }
 
-function trackRow(track, index, { onUp, onDown, onRemove, isFirst, isLast } = {}) {
+function trackRow(track, index, { onMoveToTop, onUp, onDown, onRemove, isFirst, isLast } = {}) {
   const row = el('li', isFirst ? 'track-row track-row-next' : 'track-row');
 
   if (track.thumbnail) {
@@ -200,8 +200,11 @@ function trackRow(track, index, { onUp, onDown, onRemove, isFirst, isLast } = {}
   );
   row.appendChild(info);
 
-  if (onUp || onDown || onRemove) {
+  if (onMoveToTop || onUp || onDown || onRemove) {
     const actions = el('div', 'track-actions');
+    if (onMoveToTop) {
+      actions.appendChild(actionButton('list-start', 'Mover para o topo da fila', onMoveToTop, isFirst));
+    }
     if (onUp) actions.appendChild(actionButton('chevron-up', 'Mover para cima', onUp, isFirst));
     if (onDown) actions.appendChild(actionButton('chevron-down', 'Mover para baixo', onDown, isLast));
     if (onRemove) actions.appendChild(actionButton('x', 'Remover da fila', onRemove));
@@ -213,6 +216,11 @@ function trackRow(track, index, { onUp, onDown, onRemove, isFirst, isLast } = {}
 
 async function moveTrack(index, direction) {
   await api('/api/queue/move', { method: 'POST', body: JSON.stringify({ index, direction }) });
+  await loadQueue();
+}
+
+async function moveTrackToTop(index) {
+  await api('/api/queue/move-to-top', { method: 'POST', body: JSON.stringify({ index }) });
   await loadQueue();
 }
 
@@ -540,6 +548,7 @@ function renderQueue(data) {
     data.tracks.forEach((track, index) => {
       list.appendChild(
         trackRow(track, index, {
+          onMoveToTop: () => void moveTrackToTop(index),
           onUp: () => void moveTrack(index, 'up'),
           onDown: () => void moveTrack(index, 'down'),
           onRemove: () => void removeTrack(index),
