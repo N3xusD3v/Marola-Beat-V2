@@ -104,7 +104,8 @@ export function createServer(client: BotClient): Express {
   app.use(createAuthRouter(client));
   app.use('/api/guilds', createGuildsRouter(client));
   app.use('/api/queue', createQueueRouter(client));
-  app.use(express.static(path.join(process.cwd(), 'public')));
+  // `extensions: ['html']` permite servir /privacy e /terms sem o sufixo .html (URL "limpa").
+  app.use(express.static(path.join(process.cwd(), 'public'), { extensions: ['html'] }));
 
   app.use((_req, res) => {
     res.status(404).json({ error: 'not_found' });

@@ -146,6 +146,17 @@ function renderLogin() {
   link.appendChild(icon('discord'));
   link.appendChild(el('span', null, 'Entrar com Discord'));
   box.appendChild(link);
+
+  const legal = el('p', 'login-legal');
+  const privacyLink = el('a', null, 'Política de Privacidade');
+  privacyLink.href = '/privacy';
+  const termsLink = el('a', null, 'Termos de Uso');
+  termsLink.href = '/terms';
+  legal.appendChild(privacyLink);
+  legal.append(' · ');
+  legal.appendChild(termsLink);
+  box.appendChild(legal);
+
   app.appendChild(box);
 }
 

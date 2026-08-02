@@ -160,6 +160,9 @@ Rode `npm run register` novamente sempre que adicionar, remover ou alterar um co
 - [ ] Serviço `lavalink` sem porta/domínio exposto no Coolify (só o `bot` recebe domínio)
 - [ ] `GUILD_ID` vazio em produção (comandos globais) ou definido para um servidor de staging
 - [ ] Redirect URI `https://beat.n3xus.dev/auth/discord/callback` cadastrado no Developer Portal
+- [ ] Se o bot for chegar perto de 100 servidores: `https://beat.n3xus.dev/privacy` e `/terms`
+      cadastrados nos campos "Privacy Policy URL"/"Terms of Service URL" da aplicação no Developer
+      Portal (**Verification** exige a Privacy Policy publicada — veja o rodapé da tela de login)
 - [ ] Domínio `https://beat.n3xus.dev:3000` atribuído ao serviço no Coolify (sem `ports:` no compose)
 - [ ] DNS de `beat.n3xus.dev` no Cloudflare em modo "DNS only" até o certificado ser emitido
 - [ ] `npm run register` executado após qualquer mudança nos comandos

@@ -102,6 +102,8 @@ body:not(.login-active)::after {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  text-decoration: none;
+  color: inherit;
 }
 
 .brand-mark {
@@ -402,6 +404,21 @@ body.login-active main {
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--text-muted);
+}
+
+.login-legal {
+  margin: 1rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.login-legal a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.login-legal a:hover {
+  color: var(--text);
 }
 
 .btn {
@@ -1132,4 +1149,54 @@ body.login-active main {
   .add-track input {
     font-size: 0.85rem;
   }
+}
+
+/* Páginas de Privacidade/Termos (public/privacy.html, public/terms.html) — prosa lida de cima a
+   baixo, não cards de app, então usam um container mais estreito e tipografia de leitura em vez
+   dos componentes de UI (.card, .btn etc.) do resto do painel. */
+.legal-body {
+  display: block;
+}
+
+.legal-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+  line-height: 1.6;
+}
+
+.legal-page h1 {
+  font-size: 1.6rem;
+  margin: 0 0 0.4rem;
+}
+
+.legal-page h2 {
+  font-size: 1.1rem;
+  margin: 2rem 0 0.6rem;
+}
+
+.legal-page p,
+.legal-page li {
+  color: var(--text-muted);
+}
+
+.legal-page ul {
+  padding-left: 1.4rem;
+}
+
+.legal-page li {
+  margin-bottom: 0.4rem;
+}
+
+.legal-page a {
+  color: var(--text);
+}
+
+.legal-updated {
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.legal-back {
+  margin-top: 2.5rem;
 }
