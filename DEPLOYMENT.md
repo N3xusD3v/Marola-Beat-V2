@@ -117,6 +117,20 @@ completamente). Adicione `TV` à lista de clients e redeploy. Como o
 mudar quais clients suportam OAuth entre versões do plugin, vale checar a seção "Available
 clients" do README de novo se isso voltar a acontecer depois de um upgrade do plugin.
 
+**Se a reprodução falhar com `Must find sig function from script: ...` ou `Must find n function
+from script: ...`** (mesmo com o token OAuth válido e o client `TV` corretamente ativo — o log
+mostra `Client [TVHTML5] failed: ...` mas nenhum aviso de "OAuth-compatible clients"): o YouTube
+mudou o formato do player script e quebrou a extração local de assinatura do plugin — problema
+conhecido, não específico deste projeto, rastreado em
+[lavalink-devs/youtube-source#225](https://github.com/lavalink-devs/youtube-source/issues/225).
+A correção (já aplicada em `lavalink/application.yml`) é delegar essa extração pra um servidor
+remoto em vez da lib local via `plugins.youtube.remoteCipher` (instância pública, gratuita, sem
+senha: `https://cipher.kikkia.dev/`, mantida pelo autor do plugin — ver
+[github.com/kikkia/yt-cipher](https://github.com/kikkia/yt-cipher)). Se isso voltar a falhar
+mesmo com o `remoteCipher` configurado, a instância pública pode estar fora do ar — considere
+hospedar a sua própria seguindo o README do `yt-cipher` (é um servidor Deno leve, sobe com
+`docker compose up` num serviço à parte).
+
 ## Escalando para múltiplos nós Lavalink (quando o volume exigir)
 
 Hoje só existe um node Lavalink — se ele cair, a reprodução para em **todos** os servidores ao
@@ -188,6 +202,11 @@ Rode `npm run register` novamente sempre que adicionar, remover ou alterar um co
       do painel persiste entre redeploys (antes usava `MemoryStore` em memória, perdia tudo)
 - [ ] `YOUTUBE_OAUTH_REFRESH_TOKEN` configurada após completar o device-code flow (veja
       "Autenticação OAuth do YouTube" acima) — sem ela, buscas do YouTube falham em produção
+- [ ] `lavalink/application.yml` tem `TV` em `plugins.youtube.clients` e `plugins.youtube.remoteCipher`
+      configurado — sem os dois, a reprodução do YouTube falha mesmo com o token OAuth válido (ver
+      os dois failure modes na seção "Autenticação OAuth do YouTube" acima). **Lembre-se**: mudanças
+      nesse arquivo exigem colar o conteúdo novo em Persistent Storage → Files no Coolify, git push
+      sozinho não é suficiente — ver "Alterando `lavalink/application.yml`" acima
 - [ ] Serviço `lavalink` sem porta/domínio exposto no Coolify (só o `bot` recebe domínio)
 - [ ] `GUILD_ID` vazio em produção (comandos globais) ou definido para um servidor de staging
 - [ ] Redirect URI `https://beat.n3xus.dev/auth/discord/callback` cadastrado no Developer Portal
