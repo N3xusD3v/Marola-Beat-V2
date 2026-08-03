@@ -36,7 +36,7 @@ interface LoginUser {
 const USERS_KEY = 'marola-beat:admin:users';
 const GUILD_ACTIVITY_KEY = 'marola-beat:admin:guild-activity';
 
-export async function recordLogin(redis: RedisClient, user: LoginUser): Promise<void> {
+async function upsertUser(redis: RedisClient, user: LoginUser, incrementLoginCount: boolean): Promise<void> {
   const now = new Date().toISOString();
   const raw = await redis.hGet(USERS_KEY, user.id);
   const existing = raw ? (JSON.parse(raw) as TrackedUser) : undefined;
@@ -46,9 +46,21 @@ export async function recordLogin(redis: RedisClient, user: LoginUser): Promise<
     avatar: user.avatar,
     firstLoginAt: existing?.firstLoginAt ?? now,
     lastLoginAt: now,
-    loginCount: (existing?.loginCount ?? 0) + 1,
+    loginCount: (existing?.loginCount ?? 0) + (incrementLoginCount ? 1 : 0),
   };
   await redis.hSet(USERS_KEY, user.id, JSON.stringify(record));
+}
+
+export async function recordLogin(redis: RedisClient, user: LoginUser): Promise<void> {
+  await upsertUser(redis, user, true);
+}
+
+// Chamado a cada requisição autenticada de fila (junto com recordGuildActivity) — sem isso, quem
+// já tinha uma sessão válida de antes desta feature existir (não passa pelo callback OAuth de
+// novo até a sessão expirar) nunca aparece na lista de usuários, mesmo usando o painel
+// ativamente. Não incrementa loginCount (que fica reservado pra logins de fato via OAuth).
+export async function touchUser(redis: RedisClient, user: LoginUser): Promise<void> {
+  await upsertUser(redis, user, false);
 }
 
 export async function getTrackedUsers(redis: RedisClient): Promise<TrackedUser[]> {

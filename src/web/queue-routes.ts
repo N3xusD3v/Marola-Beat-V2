@@ -2,7 +2,7 @@ import { Router } from 'express';
 import type { SearchResult, Track, UnresolvedTrack } from 'lavalink-client';
 import type { BotClient } from '../types/client.js';
 import { requesterName } from '../lib/embeds.js';
-import { recordGuildActivity } from '../lib/admin-store.js';
+import { recordGuildActivity, touchUser } from '../lib/admin-store.js';
 import type { RedisClient } from '../lib/admin-store.js';
 import { formatDuration } from '../lib/format.js';
 import { logger } from '../lib/logger.js';
@@ -44,8 +44,12 @@ export function createQueueRouter(client: BotClient, redis: RedisClient) {
   // "Última atividade" do servidor no painel /admin — não bloqueia a resposta (fire-and-forget),
   // já que é só estatística, não deve adicionar latência a nenhuma ação da fila.
   router.use((req, res, next) => {
-    recordGuildActivity(redis, req.voice!.guildId, req.session.user!.id).catch((error: unknown) => {
+    const user = req.session.user!;
+    recordGuildActivity(redis, req.voice!.guildId, user.id).catch((error: unknown) => {
       logger.error('Erro ao registrar atividade do servidor para o painel admin:', error);
+    });
+    touchUser(redis, user).catch((error: unknown) => {
+      logger.error('Erro ao registrar atividade do usuário para o painel admin:', error);
     });
     next();
   });
