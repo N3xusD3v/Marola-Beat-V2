@@ -258,6 +258,14 @@ async function selectGuild(guildId) {
     renderBlocked('Não foi possível selecionar esse servidor. Tente novamente.');
     return false;
   }
+  // O apelido/nome de exibição no topbar depende do servidor selecionado (ver /api/me) — sem
+  // isso, o topbar ficava com o @username até o próximo reload da página inteira. renderUser()
+  // reconstrói o userBox do zero, então o botão "trocar servidor" precisa ser reinserido.
+  const meRes = await api('/api/me');
+  if (meRes.ok) {
+    renderUser(await meRes.json());
+    updateGuildSwitcher();
+  }
   return true;
 }
 
