@@ -49,6 +49,8 @@ Mais simples de manter — o próprio Coolify clona o repositório e builda a im
      serviços `bot` e `lavalink` automaticamente pelo `docker-compose.yml`, só precisa cadastrar
      uma vez)
    - `LOG_LEVEL` (opcional, padrão `info`)
+   - `ADMIN_DISCORD_ID` (opcional, já vem com um padrão embutido — só cadastre se quiser trocar
+     quem tem acesso ao painel `/admin`, ver [README.md](README.md#painel-web))
    - `YOUTUBE_OAUTH_REFRESH_TOKEN` — só depois do primeiro deploy, veja a seção
      "Autenticação OAuth do YouTube" abaixo. Pode deixar vazia no cadastro inicial.
 5. Em **Domains**, atribua ao serviço `bot`: `https://beat.n3xus.dev:3000` — o `:3000` diz ao

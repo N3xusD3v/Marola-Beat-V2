@@ -9,6 +9,7 @@ import type { Express } from 'express';
 import type { BotClient } from '../types/client.js';
 import { env } from '../config/env.js';
 import { logger } from '../lib/logger.js';
+import { createAdminRouter } from './admin-routes.js';
 import { createAuthRouter } from './auth.js';
 import { createGuildsRouter } from './guilds-routes.js';
 import { createQueueRouter } from './queue-routes.js';
@@ -101,9 +102,10 @@ export function createServer(client: BotClient): Express {
   app.use('/auth/login', loginRateLimit);
   app.use('/api/queue', queueRateLimit);
 
-  app.use(createAuthRouter(client));
+  app.use(createAuthRouter(client, redisClient));
   app.use('/api/guilds', createGuildsRouter(client));
-  app.use('/api/queue', createQueueRouter(client));
+  app.use('/api/queue', createQueueRouter(client, redisClient));
+  app.use('/api/admin', createAdminRouter(client, redisClient));
   // `extensions: ['html']` permite servir /privacy e /terms sem o sufixo .html (URL "limpa").
   app.use(express.static(path.join(process.cwd(), 'public'), { extensions: ['html'] }));
 

@@ -15,6 +15,7 @@ interface Env {
   lavalinkHost: string;
   lavalinkPort: number;
   lavalinkPassword: string;
+  adminDiscordId: string;
 }
 
 function required(name: string): string {
@@ -58,4 +59,8 @@ export const env: Env = {
   lavalinkHost: process.env.LAVALINK_HOST || 'lavalink',
   lavalinkPort: lavalinkPort(),
   lavalinkPassword: required('LAVALINK_PASSWORD'),
+  // ID Discord do único usuário com acesso ao painel /admin (lista de servidores, remoção do bot
+  // e histórico de login). Tem um padrão pra não travar o boot se a env var ainda não foi
+  // cadastrada no Coolify — mas dá pra sobrescrever, e é o valor que deve ir pra lá em produção.
+  adminDiscordId: process.env.ADMIN_DISCORD_ID || '336324156595634176',
 };

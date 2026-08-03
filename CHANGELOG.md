@@ -59,6 +59,14 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
   o novo `src/web/body-fields.ts` (`stringField`/`numberField`/`booleanField`, extraídos de
   `queue-routes.ts` pra poder ser testados sem depender de `config/env.ts`). CI passa a rodar
   `npm test` em todo PR.
+- Painel administrativo (`/admin`), restrito a um único usuário Discord (`ADMIN_DISCORD_ID`, novo
+  em `config/env.ts` — vem com um padrão embutido pra não travar o boot antes de a env var existir
+  no Coolify): lista todos os servidores onde o bot está (nome, ícone, nº de membros, data de
+  entrada e última atividade), com um botão pra removê-lo de um servidor (`guild.leave()`), e
+  lista quem já logou/usou o painel (nº de logins, primeiro/último login). Novo
+  `src/lib/admin-store.ts` guarda esse histórico em hashes no mesmo Redis da sessão — sem banco de
+  dados novo. `GET /api/me` passa a expor `isAdmin` pro frontend mostrar o link no topbar
+  (`public/admin.html`/`admin.js`/`admin.css`) só pra quem tem acesso.
 
 ### Alterado
 
