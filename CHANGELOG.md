@@ -131,6 +131,11 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
   **Configuration → Persistent Storage → Files** no Coolify. Ver [DEPLOYMENT.md](DEPLOYMENT.md)
   pro passo a passo — essa é provavelmente a causa de qualquer mudança "sumida" nesse arquivo no
   futuro.
+- Painel admin não mostrava o apelido/nome de exibição do servidor em Usuários (sempre caía pro
+  @username) — a atividade de fila resolvia o apelido só via `guild.members.cache`, que fica quase
+  sempre vazio porque o bot não tem o intent `GuildMembers` (ver `src/index.ts`). Corrigido usando
+  `guild.members.fetch()` como fallback quando não está em cache, mesmo padrão já usado em
+  `POST /api/queue/add` e `GET /api/me`.
 
 ### Removido
 

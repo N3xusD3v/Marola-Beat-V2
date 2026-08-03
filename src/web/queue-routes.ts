@@ -46,14 +46,19 @@ export function createQueueRouter(client: BotClient, redis: RedisClient) {
   router.use((req, res, next) => {
     const user = req.session.user!;
     const guildId = req.voice!.guildId;
-    // Sem fetch() aqui de propósito: essa rota é atingida a cada poll de 4s, então usar só o
-    // cache evita bater na API REST do Discord numa rota tão frequente — o GuildMember já deve
-    // estar em cache pelo próprio evento de voice state que fez requireVoiceMember passar.
-    const displayName = client.guilds.cache.get(guildId)?.members.cache.get(user.id)?.displayName;
     recordGuildActivity(redis, guildId, user.id).catch((error: unknown) => {
       logger.error('Erro ao registrar atividade do servidor para o painel admin:', error);
     });
-    touchUser(redis, { ...user, displayName: displayName ?? user.username }).catch((error: unknown) => {
+    void (async () => {
+      // O bot não tem o intent GuildMembers (ver src/index.ts), então guild.members.cache só tem
+      // o próprio bot na maioria dos casos — precisa de fetch() de verdade pra resolver o apelido,
+      // mesmo padrão já usado em /api/queue/add e GET /api/me. fetch() também popula o cache,
+      // então polls seguintes do mesmo usuário tendem a resolver do cache até ele expirar.
+      const guild = client.guilds.cache.get(guildId);
+      const member =
+        guild?.members.cache.get(user.id) ?? (await guild?.members.fetch(user.id).catch(() => undefined));
+      await touchUser(redis, { ...user, displayName: member?.displayName ?? user.username });
+    })().catch((error: unknown) => {
       logger.error('Erro ao registrar atividade do usuário para o painel admin:', error);
     });
     next();
