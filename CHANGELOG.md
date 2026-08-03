@@ -63,10 +63,12 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
   em `config/env.ts` — vem com um padrão embutido pra não travar o boot antes de a env var existir
   no Coolify): lista todos os servidores onde o bot está (nome, ícone, nº de membros, data de
   entrada e última atividade), com um botão pra removê-lo de um servidor (`guild.leave()`), e
-  lista quem já logou/usou o painel (nº de logins, primeiro/último login). Novo
-  `src/lib/admin-store.ts` guarda esse histórico em hashes no mesmo Redis da sessão — sem banco de
-  dados novo. `GET /api/me` passa a expor `isAdmin` pro frontend mostrar o link no topbar
-  (`public/admin.html`/`admin.js`/`admin.css`) só pra quem tem acesso.
+  lista quem já logou/usou o painel (nº de logins, primeiro/último login) — sessões abertas antes
+  desta feature existir também aparecem, já que o middleware de fila (`queue-routes.ts`) atualiza
+  o registro do usuário (sem contar como login novo) em toda requisição autenticada, não só no
+  callback OAuth2. Novo `src/lib/admin-store.ts` guarda esse histórico em hashes no mesmo Redis da
+  sessão — sem banco de dados novo. `GET /api/me` passa a expor `isAdmin` pro frontend mostrar o
+  link no topbar (`public/admin.html`/`admin.js`/`admin.css`) só pra quem tem acesso.
 
 ### Alterado
 
