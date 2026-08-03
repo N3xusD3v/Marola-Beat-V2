@@ -63,6 +63,15 @@ plugins:
     # PLUGINS_YOUTUBE_OAUTH_REFRESHTOKEN no docker-compose.yml.
     oauth:
       enabled: true
+    # YouTube muda o formato do player script com frequência, o que quebra a extração local da
+    # função de assinatura ("Must find sig function from script..." nos logs — visto em produção
+    # mesmo com OAuth funcionando e o client TV corretamente ativo). Delega essa extração pra um
+    # servidor remoto mantido ativamente pelo autor do plugin, em vez de depender da lib local
+    # ficar em dia com toda mudança do YouTube — ver github.com/kikkia/yt-cipher. Instância
+    # pública, sem senha; o rate limit (10 req/s) é bem acima do que esse bot usa.
+    remoteCipher:
+      url: 'https://cipher.kikkia.dev/'
+      userAgent: 'marola-beat'
 
 metrics:
   prometheus:
