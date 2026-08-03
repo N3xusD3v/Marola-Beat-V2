@@ -104,6 +104,10 @@ export function createAdminRouter(client: BotClient, redis: RedisClient) {
       }
 
       try {
+        // Sem isso, um player tocando nesse servidor fica pendurado (conexão de voz órfã no
+        // Lavalink) depois que o bot sai — mesma limpeza do endpoint /api/queue/leave.
+        const player = client.lavalink.getPlayer(guild.id);
+        if (player) await player.destroy();
         await guild.leave();
         await removeGuildActivity(redis, guild.id);
         res.status(204).end();

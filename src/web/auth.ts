@@ -42,7 +42,12 @@ export function createAuthRouter(client: BotClient, redis: RedisClient) {
         // Limpa uma seleção antiga (ex: login de novo depois de sair) — o usuário escolhe de
         // novo via GET /api/guilds + POST /api/guilds/select.
         req.session.selectedGuildId = undefined;
-        await recordLogin(redis, user);
+        // Fire-and-forget: histórico de login é só estatística do painel /admin, uma falha
+        // transitória no Redis não deve impedir quem está logando de fato (a sessão já foi
+        // gravada acima).
+        recordLogin(redis, user).catch((error: unknown) => {
+          logger.error('Erro ao registrar login para o painel admin:', error);
+        });
         res.redirect('/');
       } catch (error) {
         logger.error('Erro no callback OAuth2:', error);
