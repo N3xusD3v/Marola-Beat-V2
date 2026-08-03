@@ -68,7 +68,10 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
   o registro do usuário (sem contar como login novo) em toda requisição autenticada, não só no
   callback OAuth2. Novo `src/lib/admin-store.ts` guarda esse histórico em hashes no mesmo Redis da
   sessão — sem banco de dados novo. `GET /api/me` passa a expor `isAdmin` pro frontend mostrar o
-  link no topbar (`public/admin.html`/`admin.js`/`admin.css`) só pra quem tem acesso.
+  link no topbar (`public/admin.html`/`admin.js`/`admin.css`) só pra quem tem acesso. Lista de
+  usuários e "última atividade" de cada servidor mostram o apelido/nome de exibição do servidor
+  (`GuildMember.displayName`, resolvido do cache pra não bater na API REST do Discord a cada poll
+  de 4s) em vez do @username da conta — mesmo motivo do requester da fila e do topbar principal.
 
 ### Alterado
 

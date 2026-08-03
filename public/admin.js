@@ -212,7 +212,11 @@ function renderUsersSection() {
   function renderList() {
     list.textContent = '';
     const query = searchInput.value.trim();
-    const filtered = query ? allUsers.filter((user) => matchesFilter(user.username, query)) : allUsers;
+    // user.displayName pode não existir em registros gravados antes desse campo existir — cai
+    // pro username nesse caso.
+    const filtered = query
+      ? allUsers.filter((user) => matchesFilter(user.displayName ?? user.username, query))
+      : allUsers;
 
     if (filtered.length === 0) {
       list.appendChild(el('li', 'empty', 'Nenhum usuário encontrado.'));
@@ -229,7 +233,7 @@ function renderUsersSection() {
       item.appendChild(img);
 
       const info = el('div', 'admin-row-info');
-      info.appendChild(el('span', 'admin-row-title', user.username));
+      info.appendChild(el('span', 'admin-row-title', user.displayName ?? user.username));
       const meta = el('span', 'admin-row-meta');
       meta.textContent = `${user.loginCount} login(s) · primeiro em ${formatDateTime(user.firstLoginAt)} · último em ${formatDateTime(user.lastLoginAt)}`;
       info.appendChild(meta);
