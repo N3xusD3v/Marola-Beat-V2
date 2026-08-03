@@ -62,6 +62,24 @@ Mais simples de manter — o próprio Coolify clona o repositório e builda a im
 Depois do primeiro deploy, rode o registro de comandos uma vez (veja "Registrando comandos de
 barra" abaixo).
 
+## Alterando `lavalink/application.yml` (leia antes de editar esse arquivo)
+
+**O Coolify não sincroniza esse arquivo do zero a cada deploy.** Como ele é montado como bind
+mount (`volumes:` em `docker-compose.yml`), o Coolify o detecta na primeira vez e passa a
+gerenciá-lo como um recurso próprio de "Persistent Storage" (aba **Files**), guardando o conteúdo
+num arquivo separado no host (`/data/coolify/applications/<uuid>/lavalink/application.yml`) — os
+deploys seguintes usam esse arquivo do Coolify, **não** o que está no repositório. Um `git push`
+com mudanças nesse arquivo builda e sobe normalmente, mas o Lavalink continua rodando com a versão
+antiga até você atualizar o conteúdo manualmente:
+
+1. No Coolify: **Configuration → Persistent Storage → Files (1)**.
+2. Cole o conteúdo novo do arquivo (o de `lavalink/application.yml` no repo) na caixa **Content**
+   e clique em **Save**.
+3. **Redeploy** — só depois disso o container do Lavalink sobe com a config atualizada.
+
+Pra confirmar que pegou: `docker exec` no container do Lavalink (ou aba **Terminal** do Coolify) e
+rode `cat /opt/Lavalink/application.yml` — compare com o que está no repo.
+
 ## Autenticação OAuth do YouTube (fazer depois do primeiro deploy)
 
 Buscas de música do YouTube feitas a partir de IPs de datacenter (Hetzner incluído — citado

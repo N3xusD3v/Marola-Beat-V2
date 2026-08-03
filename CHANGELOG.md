@@ -115,6 +115,22 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
   pra tocar nessa versão do plugin (`youtube-plugin:1.18.2`) além do client `TV`, que não estava na
   lista. Token válido, mas nunca usado numa tentativa real de tocar. Corrigido adicionando `TV` à
   lista de clients — ver [DEPLOYMENT.md](DEPLOYMENT.md) pra esse failure mode específico.
+- Reprodução do YouTube continuando a falhar mesmo depois do `TV` acima corrigir o OAuth — dessa
+  vez com `Must find sig function from script: ...` no log (o client `TV`/OAuth passava a ser
+  tentado normalmente, mas falhava num passo diferente: extrair a função de assinatura do player
+  script do YouTube, que muda de formato com frequência e quebra a extração local do plugin —
+  problema conhecido e rastreado em
+  [lavalink-devs/youtube-source#225](https://github.com/lavalink-devs/youtube-source/issues/225)).
+  Corrigido configurando `plugins.youtube.remoteCipher` em `lavalink/application.yml` pra delegar
+  essa extração pro servidor remoto público [yt-cipher](https://github.com/kikkia/yt-cipher)
+  (`cipher.kikkia.dev`, mantido ativamente pelo autor do plugin), em vez de depender da lib local.
+- **Importante pra quem for mexer em `lavalink/application.yml` de novo**: o Coolify não
+  re-sincroniza esse arquivo do repositório a cada deploy — ele vira um recurso de "Persistent
+  Storage" próprio do Coolify na primeira detecção, e passa a ignorar mudanças via git a partir
+  daí. As duas correções acima só passaram a valer depois de colar o conteúdo novo manualmente em
+  **Configuration → Persistent Storage → Files** no Coolify. Ver [DEPLOYMENT.md](DEPLOYMENT.md)
+  pro passo a passo — essa é provavelmente a causa de qualquer mudança "sumida" nesse arquivo no
+  futuro.
 
 ### Removido
 
