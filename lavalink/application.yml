@@ -46,6 +46,13 @@ plugins:
       - ANDROID_VR
       - WEB
       - WEBEMBEDDED
+      # Único client desta versão do plugin (1.18.2) que de fato usa OAuth pra tocar
+      # (dev.lavalink.youtube:youtube-plugin — ver github.com/lavalink-devs/youtube-source,
+      # seção "Available clients"): os outros ignoram o token OAuth completamente. Sem ele aqui,
+      # o log mostra "OAuth has been enabled without registering any OAuth-compatible clients" —
+      # o token chega a renovar com sucesso, mas nunca é de fato usado numa tentativa de tocar, e
+      # todos os clients continuam falhando com "This video requires login" (visto em produção).
+      - TV
     # Requisições de busca vindas do IP do Hetzner são bloqueadas pelo YouTube ("Invalid status
     # code for search response: 400" / "sign in to confirm you're not a bot") — problema conhecido
     # e documentado para hosts de datacenter. OAuth (login com uma conta Google, burner, não a

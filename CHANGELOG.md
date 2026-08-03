@@ -107,6 +107,14 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
   pro servidor selecionado, mas o topbar continuava mostrando o @username porque só era
   renderizado uma vez, no carregamento inicial, antes de qualquer servidor ser escolhido.
   `selectGuild()` agora rebusca `/api/me` e re-renderiza o topbar depois de toda seleção.
+- Reprodução do YouTube voltando a falhar em produção (`AllClientsFailedException` / "This video
+  requires login" pra todo mundo) mesmo com um `YOUTUBE_OAUTH_REFRESH_TOKEN` válido e renovando
+  com sucesso (`YouTube access token refreshed successfully` no log do `lavalink`) — o log também
+  mostrava `OAuth has been enabled without registering any OAuth-compatible clients`: nenhum dos
+  clients configurados em `plugins.youtube.clients` (`lavalink/application.yml`) de fato usa OAuth
+  pra tocar nessa versão do plugin (`youtube-plugin:1.18.2`) além do client `TV`, que não estava na
+  lista. Token válido, mas nunca usado numa tentativa real de tocar. Corrigido adicionando `TV` à
+  lista de clients — ver [DEPLOYMENT.md](DEPLOYMENT.md) pra esse failure mode específico.
 
 ### Removido
 
