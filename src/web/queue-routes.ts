@@ -45,10 +45,15 @@ export function createQueueRouter(client: BotClient, redis: RedisClient) {
   // já que é só estatística, não deve adicionar latência a nenhuma ação da fila.
   router.use((req, res, next) => {
     const user = req.session.user!;
-    recordGuildActivity(redis, req.voice!.guildId, user.id).catch((error: unknown) => {
+    const guildId = req.voice!.guildId;
+    // Sem fetch() aqui de propósito: essa rota é atingida a cada poll de 4s, então usar só o
+    // cache evita bater na API REST do Discord numa rota tão frequente — o GuildMember já deve
+    // estar em cache pelo próprio evento de voice state que fez requireVoiceMember passar.
+    const displayName = client.guilds.cache.get(guildId)?.members.cache.get(user.id)?.displayName;
+    recordGuildActivity(redis, guildId, user.id).catch((error: unknown) => {
       logger.error('Erro ao registrar atividade do servidor para o painel admin:', error);
     });
-    touchUser(redis, user).catch((error: unknown) => {
+    touchUser(redis, { ...user, displayName: displayName ?? user.username }).catch((error: unknown) => {
       logger.error('Erro ao registrar atividade do usuário para o painel admin:', error);
     });
     next();

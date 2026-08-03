@@ -45,7 +45,10 @@ export function createAuthRouter(client: BotClient, redis: RedisClient) {
         // Fire-and-forget: histórico de login é só estatística do painel /admin, uma falha
         // transitória no Redis não deve impedir quem está logando de fato (a sessão já foi
         // gravada acima).
-        recordLogin(redis, user).catch((error: unknown) => {
+        // Sem servidor selecionado ainda nesse ponto do login (ver comentário acima) — cai pro
+        // username, igual /api/me faz; touchUser() (queue-routes.ts) refina pro apelido do
+        // servidor assim que o usuário usar a fila de algum servidor específico.
+        recordLogin(redis, { ...user, displayName: user.username }).catch((error: unknown) => {
           logger.error('Erro ao registrar login para o painel admin:', error);
         });
         res.redirect('/');

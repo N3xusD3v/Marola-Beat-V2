@@ -81,7 +81,7 @@ export function createAdminRouter(client: BotClient, redis: RedisClient) {
             memberCount: guild.memberCount,
             joinedAt: guild.members.me?.joinedAt?.toISOString() ?? null,
             lastActiveAt: guildActivity?.lastActiveAt ?? null,
-            lastActiveUser: lastUser?.username ?? null,
+            lastActiveUser: lastUser?.displayName ?? lastUser?.username ?? null,
           };
         });
         guilds.sort((a, b) => b.memberCount - a.memberCount);

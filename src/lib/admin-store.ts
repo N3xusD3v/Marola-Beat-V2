@@ -13,6 +13,11 @@ export interface RedisClient {
 export interface TrackedUser {
   id: string;
   username: string;
+  // Apelido/nome de exibição do servidor (GuildMember.displayName) onde o usuário foi visto por
+  // último — mesmo motivo do requester da fila (ver lib/embeds.ts) e do topbar (ver auth.ts):
+  // mais reconhecível pro admin do que o @username da conta. Cai pro username se ainda não temos
+  // um GuildMember resolvido (ex: registro criado só pelo login, sem atividade de fila ainda).
+  displayName: string;
   avatar: string | null;
   firstLoginAt: string;
   lastLoginAt: string;
@@ -27,6 +32,7 @@ export interface GuildActivity {
 interface LoginUser {
   id: string;
   username: string;
+  displayName: string;
   avatar: string | null;
 }
 
@@ -43,6 +49,7 @@ async function upsertUser(redis: RedisClient, user: LoginUser, incrementLoginCou
   const record: TrackedUser = {
     id: user.id,
     username: user.username,
+    displayName: user.displayName,
     avatar: user.avatar,
     firstLoginAt: existing?.firstLoginAt ?? now,
     lastLoginAt: now,
