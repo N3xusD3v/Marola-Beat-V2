@@ -46,6 +46,9 @@ Além dos comandos de barra, o bot serve um painel web (`PUBLIC_URL`, ex.
 - **Reordenar e remover músicas da fila** — reordenar só troca uma música de posição com a
   vizinha imediata (botões ▲/▼), não pula posições; ✕ remove uma música específica, "Limpar fila"
   remove todas de uma vez.
+- **Painel administrativo** (`/admin`), restrito a um único usuário (`ADMIN_DISCORD_ID`, o dono
+  do bot): lista de todos os servidores onde o bot está (com contagem de membros e última
+  atividade), botão para removê-lo de um servidor, e histórico de quem já logou/usou o painel.
 
 Configuração e variáveis de ambiente necessárias em [DEPLOYMENT.md](DEPLOYMENT.md).
 

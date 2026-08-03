@@ -27,6 +27,7 @@ services:
       LAVALINK_HOST: lavalink
       LAVALINK_PORT: 2333
       LAVALINK_PASSWORD: ${LAVALINK_PASSWORD}
+      ADMIN_DISCORD_ID: ${ADMIN_DISCORD_ID:-336324156595634176}
     healthcheck:
       test: ['CMD', 'wget', '-qO-', 'http://localhost:${PORT:-3000}/healthz']
       interval: 10s

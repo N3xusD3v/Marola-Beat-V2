@@ -2,6 +2,8 @@ import { Router } from 'express';
 import type { SearchResult, Track, UnresolvedTrack } from 'lavalink-client';
 import type { BotClient } from '../types/client.js';
 import { requesterName } from '../lib/embeds.js';
+import { recordGuildActivity } from '../lib/admin-store.js';
+import type { RedisClient } from '../lib/admin-store.js';
 import { formatDuration } from '../lib/format.js';
 import { logger } from '../lib/logger.js';
 import { booleanField, numberField, stringField } from './body-fields.js';
@@ -36,9 +38,17 @@ function toDTO(track: Track | UnresolvedTrack): TrackDTO {
 
 const MAX_QUERY_LENGTH = 300;
 
-export function createQueueRouter(client: BotClient) {
+export function createQueueRouter(client: BotClient, redis: RedisClient) {
   const router = Router();
   router.use(requireVoiceMember(client));
+  // "Última atividade" do servidor no painel /admin — não bloqueia a resposta (fire-and-forget),
+  // já que é só estatística, não deve adicionar latência a nenhuma ação da fila.
+  router.use((req, res, next) => {
+    recordGuildActivity(redis, req.voice!.guildId, req.session.user!.id).catch((error: unknown) => {
+      logger.error('Erro ao registrar atividade do servidor para o painel admin:', error);
+    });
+    next();
+  });
 
   router.get('/', (req, res) => {
     const player = client.lavalink.getPlayer(req.voice!.guildId);

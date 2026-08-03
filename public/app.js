@@ -180,6 +180,14 @@ function renderUser(user) {
   img.className = 'avatar';
   userBox.appendChild(img);
   userBox.appendChild(el('span', 'username', user.displayName ?? user.username));
+  if (user.isAdmin) {
+    const adminLink = el('a', 'icon-btn icon-btn-ghost');
+    adminLink.href = '/admin';
+    adminLink.title = 'Painel administrativo';
+    adminLink.setAttribute('aria-label', 'Painel administrativo');
+    adminLink.appendChild(icon('shield-check'));
+    userBox.appendChild(adminLink);
+  }
   const logout = el('button', 'icon-btn icon-btn-ghost');
   logout.type = 'button';
   logout.title = 'Sair da conta';

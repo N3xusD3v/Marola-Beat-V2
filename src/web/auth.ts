@@ -7,9 +7,12 @@ import {
   fetchDiscordUser,
   fetchUserGuildIds,
 } from './discord-oauth.js';
+import { env } from '../config/env.js';
+import { recordLogin } from '../lib/admin-store.js';
+import type { RedisClient } from '../lib/admin-store.js';
 import { logger } from '../lib/logger.js';
 
-export function createAuthRouter(client: BotClient) {
+export function createAuthRouter(client: BotClient, redis: RedisClient) {
   const authRouter = Router();
 
   authRouter.get('/auth/login', (req, res) => {
@@ -39,6 +42,12 @@ export function createAuthRouter(client: BotClient) {
         // Limpa uma seleção antiga (ex: login de novo depois de sair) — o usuário escolhe de
         // novo via GET /api/guilds + POST /api/guilds/select.
         req.session.selectedGuildId = undefined;
+        // Fire-and-forget: histórico de login é só estatística do painel /admin, uma falha
+        // transitória no Redis não deve impedir quem está logando de fato (a sessão já foi
+        // gravada acima).
+        recordLogin(redis, user).catch((error: unknown) => {
+          logger.error('Erro ao registrar login para o painel admin:', error);
+        });
         res.redirect('/');
       } catch (error) {
         logger.error('Erro no callback OAuth2:', error);
@@ -69,7 +78,11 @@ export function createAuthRouter(client: BotClient) {
       const guild = selectedGuildId ? client.guilds.cache.get(selectedGuildId) : undefined;
       const member = await guild?.members.fetch(user.id).catch(() => undefined);
 
-      res.json({ ...user, displayName: member?.displayName ?? user.username });
+      res.json({
+        ...user,
+        displayName: member?.displayName ?? user.username,
+        isAdmin: user.id === env.adminDiscordId,
+      });
     })();
   });
 

@@ -57,7 +57,9 @@ precisar de env vars fake.
   no exported member" em arquivos completamente não relacionados).
 - `src/config/env.ts` — única fonte de variáveis de ambiente; nunca leia `process.env` fora daqui.
   Inclui `lavalinkHost`/`lavalinkPort`/`lavalinkPassword` (o node aponta pro serviço `lavalink` do
-  compose por padrão).
+  compose por padrão) e `adminDiscordId` (único usuário com acesso ao painel `/admin`, tem um
+  padrão embutido em vez de `required()` pra não travar o boot antes de a env var existir no
+  Coolify).
 - `src/types/` — `Command` e `BotClient` (Client com `.commands`/`.lavalink` tipados).
 - `src/web/` — painel web, multi-servidor (o usuário escolhe qual gerenciar, não é fixo por env
   var): `server.ts` monta o app Express (sessão, estáticos de `public/`), `discord-oauth.ts` fala
@@ -80,7 +82,16 @@ precisar de env vars fake.
   `player.queue` não tem um método `swap`, então isso é feito com
   `player.queue.splice(i, 2, [trackAtI+1, trackAtI])`. `move-to-top` pula direto pra posição 0
   vindo de qualquer índice, com dois `splice` (remove do índice de origem, insere no início) já
-  que `splice` só opera num índice por chamada.
+  que `splice` só opera num índice por chamada. `admin-routes.ts` expõe `GET /api/admin/stats`,
+  `GET /api/admin/guilds`, `POST /api/admin/guilds/:id/leave` (sai do servidor via
+  `guild.leave()`) e `GET /api/admin/users`, todos atrás do middleware `requireAdmin` (compara
+  `session.user.id` com `env.adminDiscordId` — único usuário liberado). Dados de servidor sempre
+  vêm do `client.guilds.cache` live, nunca de um banco; o histórico de login/atividade por
+  servidor fica em `src/lib/admin-store.ts`, guardado como hashes no mesmo Redis da sessão
+  (`connect-redis`) — não existe outra persistência no projeto. `queue-routes.ts` chama
+  `recordGuildActivity()` em toda requisição autenticada (fire-and-forget, não bloqueia a
+  resposta) e `auth.ts` chama `recordLogin()` no callback OAuth2; `GET /api/me` expõe `isAdmin`
+  pro frontend decidir se mostra o link pro painel.
 - `public/` — frontend do painel, JS puro sem build step (fora do projeto TypeScript,
   ignorado pelo ESLint/tsconfig de propósito). Se adicionar algo aqui, não assuma tipos do `src/`.
 - `lavalink/application.yml` — config do node Lavalink: fontes de áudio habilitadas
