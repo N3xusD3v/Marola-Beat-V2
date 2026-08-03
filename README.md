@@ -109,6 +109,7 @@ npm run dev
 | `npm run build`     | Compila TypeScript para `dist/`                   |
 | `npm start`         | Roda a build de produção (`dist/index.js`)        |
 | `npm run typecheck` | Verifica tipos sem gerar arquivos                 |
+| `npm test`          | Roda os testes automatizados (Vitest)             |
 | `npm run lint`      | Roda o ESLint                                     |
 | `npm run format`    | Formata o código com Prettier                     |
 
@@ -118,12 +119,12 @@ npm run dev
 src/
 ├── commands/     # Um arquivo por comando de barra
 ├── config/       # Carregamento e validação de variáveis de ambiente
-├── lib/          # LavalinkManager, logger, embeds, helpers de fila
+├── lib/          # LavalinkManager, logger, embeds, helpers de fila, histórico do painel admin
 ├── types/        # Tipos compartilhados (Command, BotClient)
-├── web/          # Painel web: servidor Express, OAuth2, rotas da API da fila
+├── web/          # Painel web: servidor Express, OAuth2, rotas da fila e do painel admin
 ├── index.ts      # Bootstrap do bot
 └── register-commands.ts
-public/           # Frontend estático do painel web (HTML/CSS/JS puro)
+public/           # Frontend estático do painel web (HTML/CSS/JS puro, sem build step)
 lavalink/         # application.yml do node Lavalink (áudio + conexão de voz)
 ```
 

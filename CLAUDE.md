@@ -2,9 +2,9 @@
 
 Bot de música para Discord (TypeScript, ESM, Node 22+). Baseado em `discord.js` v14 e
 [Lavalink](https://lavalink.dev) v4 (via `lavalink-client`), com um painel web (Express) para
-gerenciar a fila via login Discord OAuth2. Roda em produção como dois containers Docker no
-Coolify (`bot` + `lavalink`) — o `bot` serve HTTP na porta 3000, o `lavalink` só é acessível pela
-rede interna do compose.
+gerenciar a fila via login Discord OAuth2. Roda em produção como três containers Docker no
+Coolify (`bot` + `lavalink` + `redis`) — o `bot` serve HTTP na porta 3000, `lavalink` e `redis` só
+são acessíveis pela rede interna do compose.
 
 A conexão de voz (UDP) com o Discord e a transcodificação de áudio acontecem **no processo do
 Lavalink**, não no processo do bot — isso foi uma migração deliberada de `discord-player`
@@ -89,16 +89,36 @@ precisar de env vars fake.
   vêm do `client.guilds.cache` live, nunca de um banco; o histórico de login/atividade por
   servidor fica em `src/lib/admin-store.ts`, guardado como hashes no mesmo Redis da sessão
   (`connect-redis`) — não existe outra persistência no projeto. `queue-routes.ts` chama
-  `recordGuildActivity()` em toda requisição autenticada (fire-and-forget, não bloqueia a
-  resposta) e `auth.ts` chama `recordLogin()` no callback OAuth2; `GET /api/me` expõe `isAdmin`
-  pro frontend decidir se mostra o link pro painel.
+  `recordGuildActivity()` **e** `touchUser()` em toda requisição autenticada (fire-and-forget, não
+  bloqueia a resposta) e `auth.ts` chama `recordLogin()` no callback OAuth2; `GET /api/me` expõe
+  `isAdmin` pro frontend decidir se mostra o link pro painel. `touchUser()` existe separado de
+  `recordLogin()` porque só o callback OAuth2 roda de novo pra sessões já existentes — sem
+  `touchUser()`, quem já tinha uma sessão válida de antes da feature existir nunca apareceria em
+  Usuários, mesmo usando o painel ativamente (`loginCount` não incrementa nesse caminho, fica
+  reservado só pra logins de fato via OAuth). `TrackedUser.displayName` (apelido/nome de exibição
+  do servidor, resolvido via `guild.members.cache` — sem `fetch()` REST, já que esse middleware
+  roda a cada poll de 4s do painel) é preferido sobre `username` em toda exibição do painel admin,
+  mesmo motivo do requester da fila e do topbar principal.
 - `public/` — frontend do painel, JS puro sem build step (fora do projeto TypeScript,
   ignorado pelo ESLint/tsconfig de propósito). Se adicionar algo aqui, não assuma tipos do `src/`.
 - `lavalink/application.yml` — config do node Lavalink: fontes de áudio habilitadas
   (`soundcloud`/`bandcamp`/`twitch`/`vimeo` nativos; `youtube` via plugin
   `dev.lavalink.youtube:youtube-plugin`, já que o Lavalink 4 removeu a fonte nativa do YouTube por
   causa de bloqueios de assinatura do próprio YouTube). A senha vem de `${LAVALINK_SERVER_PASSWORD}`
-  (env var do container, ver `docker-compose.yml`), nunca hardcode aqui.
+  (env var do container, ver `docker-compose.yml`), nunca hardcode aqui. `plugins.youtube.clients`
+  **precisa** incluir `TV` — é o único client desta versão do plugin (`1.18.2`) que de fato usa o
+  OAuth configurado em `oauth.enabled`; os demais (`MUSIC`/`ANDROID_VR`/`WEB`/`WEBEMBEDDED`)
+  ignoram o token completamente, mesmo com ele configurado e válido. `plugins.youtube.remoteCipher`
+  aponta pro servidor público [yt-cipher](https://github.com/kikkia/yt-cipher)
+  (`cipher.kikkia.dev`) em vez de depender da extração local de assinatura do player script do
+  YouTube, que quebra com frequência quando o YouTube muda o formato
+  ([youtube-source#225](https://github.com/lavalink-devs/youtube-source/issues/225)) — ver
+  [DEPLOYMENT.md](DEPLOYMENT.md) pros dois failure modes (`This video requires login` vs
+  `Must find sig function`) e como diferenciá-los nos logs. **Editar este arquivo e dar `git push`
+  não é suficiente em produção** — o Coolify trata esse bind mount como um recurso próprio de
+  "Persistent Storage" depois da primeira detecção e para de ler o arquivo do git; o conteúdo novo
+  precisa ser colado manualmente em Configuration → Persistent Storage → Files no Coolify antes de
+  redeploy (ver seção correspondente em [DEPLOYMENT.md](DEPLOYMENT.md)).
 
 ## Convenções
 
@@ -127,9 +147,10 @@ precisar de env vars fake.
 ## Deploy
 
 Veja [DEPLOYMENT.md](DEPLOYMENT.md). Resumo: Coolify builda o `docker-compose.yml`/`Dockerfile`
-direto do GitHub a cada push em `main` (serviços `bot` + `lavalink`); o domínio é atribuído pela UI
-do Coolify apontando pra porta 3000 do serviço `bot` (`https://beat.n3xus.dev:3000`) — não
-adicione `ports:` ao compose para isso, e nunca exponha porta/domínio pro serviço `lavalink`.
+direto do GitHub a cada push em `main` (serviços `bot` + `lavalink` + `redis`); o domínio é
+atribuído pela UI do Coolify apontando pra porta 3000 do serviço `bot`
+(`https://beat.n3xus.dev:3000`) — não adicione `ports:` ao compose para isso, e nunca exponha
+porta/domínio pros serviços `lavalink`/`redis`.
 Depois de mudar comandos, rode `npm run register` manualmente (não faz parte do runtime do
 container).
 
