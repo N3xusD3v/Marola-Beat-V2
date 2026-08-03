@@ -87,6 +87,14 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
   pra `dist/` junto com o resto; `npm run typecheck` continua na `tsconfig.json` original e cobre
   os testes normalmente.
 
+### Corrigido
+
+- Painel web: o nome/apelido no topbar não atualizava depois de selecionar ou trocar de
+  servidor (só depois de recarregar a página inteira) — `/api/me` já resolvia o apelido certo
+  pro servidor selecionado, mas o topbar continuava mostrando o @username porque só era
+  renderizado uma vez, no carregamento inicial, antes de qualquer servidor ser escolhido.
+  `selectGuild()` agora rebusca `/api/me` e re-renderiza o topbar depois de toda seleção.
+
 ### Removido
 
 - Dois ícones do painel web que nunca chegaram a ser usados (`log-in`, `loader-circle`).
