@@ -82,11 +82,22 @@ your refresh token as this can be reused. (...)` — copie o token entre parênt
    essa variável ficar vazia/expirar.
 
 **Se buscas do YouTube voltarem a falhar em produção** (`AllClientsFailedException` / "All clients
-failed to load the item" nos logs do `lavalink`, com os clients não-OAuth tentando e falhando um a
-um): o refresh token guardado expirou ou foi invalidado pelo Google. Não é um problema de código —
-a config e a variável de ambiente continuam corretas. A correção é repetir o processo acima do
-zero: limpe o valor de `YOUTUBE_OAUTH_REFRESH_TOKEN`, redeploy, pegue a nova URL/código do
-device-code flow nos logs e cadastre o novo token.
+failed to load the item" nos logs do `lavalink`, com os clients tentando e falhando um a um com
+"This video requires login"): o refresh token guardado expirou ou foi invalidado pelo Google. Não é
+um problema de código — a config e a variável de ambiente continuam corretas. A correção é repetir
+o processo acima do zero: limpe o valor de `YOUTUBE_OAUTH_REFRESH_TOKEN`, redeploy, pegue a nova
+URL/código do device-code flow nos logs e cadastre o novo token.
+
+Se depois de cadastrar um token novo o log mostrar `YouTube access token refreshed successfully`
+(ou seja, o token em si é válido) mas a reprodução **continuar** falhando com o mesmo erro pra todo
+mundo, procure por `OAuth has been enabled without registering any OAuth-compatible clients` no
+log — significa que nenhum client da lista `plugins.youtube.clients` (em
+`lavalink/application.yml`) realmente usa OAuth pra tocar nessa versão do plugin (confirmado com o
+`youtube-plugin:1.18.2`: só o client `TV` é OAuth-compatível — os demais ignoram o token
+completamente). Adicione `TV` à lista de clients e redeploy. Como o
+[github.com/lavalink-devs/youtube-source](https://github.com/lavalink-devs/youtube-source) pode
+mudar quais clients suportam OAuth entre versões do plugin, vale checar a seção "Available
+clients" do README de novo se isso voltar a acontecer depois de um upgrade do plugin.
 
 ## Escalando para múltiplos nós Lavalink (quando o volume exigir)
 
