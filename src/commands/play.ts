@@ -7,7 +7,9 @@ import { BRAND_COLOR } from '../lib/embeds.js';
 import { formatDuration } from '../lib/format.js';
 import { RateLimiter } from '../lib/rate-limiter.js';
 
-const playRateLimiter = new RateLimiter(5, 60);
+// Rate limiting mais generoso para uso restrito (você + amigos no mesmo canal)
+// 10 requisições por minuto é mais confortável para uso pessoal
+const playRateLimiter = new RateLimiter(10, 60);
 
 setInterval(() => playRateLimiter.cleanup(), 5 * 60 * 1000);
 

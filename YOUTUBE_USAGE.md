@@ -78,11 +78,13 @@ Se você fosse distribuir o bot para centenas de servidores:
 
 ## Rate Limiting
 
-O bot implementa **rate limiting** (5 requisições por minuto por usuário) para:
+O bot implementa **rate limiting** (10 requisições por minuto por usuário) para:
 - ✅ Evitar sobrecarga do YouTube
 - ✅ Reduzir chance de bloqueios
 - ✅ Simular uso humano normal
 - ✅ Manter o serviço estável
+
+**Por que 10/min?** O bot é usado apenas por você e pessoas no seu canal de voz (acesso restrito), então o limite pode ser mais generoso que em bots públicos.
 
 ## Alternativas Recomendadas
 
