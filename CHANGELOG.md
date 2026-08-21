@@ -5,6 +5,20 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ## [Unreleased]
 
+### Corrigido
+
+- Bot entrava e saía do canal de voz sem tocar: `onDisconnect` estava com
+  `destroyPlayer: true` / `autoReconnect: false`, o oposto do
+  [getting-started oficial do lavalink-client](https://lc4.gitbook.io/lavalink-client/basics/getting-started).
+  Qualquer `VOICE_STATE_UPDATE` com `channel_id` null (comum no handshake) destruía o
+  player na hora. Agora usa `autoReconnect: true` / `destroyPlayer: false`.
+- YouTube em produção: o release `youtube-plugin:1.18.2` quebrou o client `TV` (~2026-08-18)
+  com "The page needs to be reloaded" ([youtube-source#226](https://github.com/lavalink-devs/youtube-source/issues/226)).
+  Sem TV OAuth-compatível em IP de datacenter, a faixa falha e o player some. Atualizado pro
+  snapshot `f45bbb7a` (inclui o fix de UA PlayStation 4 do
+  [PR #233](https://github.com/lavalink-devs/youtube-source/pull/233)). **Coolify Persistent
+  Storage** precisa receber o `application.yml` novo manualmente — ver DEPLOYMENT.md.
+
 ### Adicionado
 
 - Sessão do painel web agora persiste em Redis (`connect-redis`) em vez do `MemoryStore` padrão

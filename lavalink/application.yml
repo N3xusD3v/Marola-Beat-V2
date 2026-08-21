@@ -32,8 +32,14 @@ lavalink:
     youtubeSearchEnabled: true
     soundcloudSearchEnabled: true
   plugins:
-    - dependency: 'dev.lavalink.youtube:youtube-plugin:1.18.2'
-      snapshot: false
+    # 1.18.2 (release) quebrou o client TV em ~2026-08-18: YouTube rejeita User-Agents Cobalt
+    # com "The page needs to be reloaded" (youtube-source#226). O PR #233 (UA PlayStation 4)
+    # corrigiu isso e já está em main; ainda sem release semver — usamos o snapshot do commit
+    # f45bbb7a (inclui #233 + #235). Trocar pra release estável assim que 1.18.3+ sair.
+    # Formato oficial: https://github.com/lavalink-devs/youtube-source#plugin
+    - dependency: 'dev.lavalink.youtube:youtube-plugin:f45bbb7aebfcbc1c553769e04af6cd43afa8b7c3'
+      repository: 'https://maven.lavalink.dev/snapshots'
+      snapshot: true
 
 plugins:
   youtube:
@@ -41,18 +47,15 @@ plugins:
     allowSearch: true
     allowDirectVideoIds: true
     allowDirectPlaylistIds: true
+    # TV primeiro: único client OAuth-compatível (youtube-source "Available clients"). Sem ele,
+    # o token OAuth renova mas nunca é usado na reprodução ("This video requires login" em IP
+    # de datacenter). MUSIC/WEB etc. ficam como fallback pra metadados/busca pública.
     clients:
+      - TV
       - MUSIC
-      - ANDROID_VR
       - WEB
       - WEBEMBEDDED
-      # Único client desta versão do plugin (1.18.2) que de fato usa OAuth pra tocar
-      # (dev.lavalink.youtube:youtube-plugin — ver github.com/lavalink-devs/youtube-source,
-      # seção "Available clients"): os outros ignoram o token OAuth completamente. Sem ele aqui,
-      # o log mostra "OAuth has been enabled without registering any OAuth-compatible clients" —
-      # o token chega a renovar com sucesso, mas nunca é de fato usado numa tentativa de tocar, e
-      # todos os clients continuam falhando com "This video requires login" (visto em produção).
-      - TV
+      - ANDROID_VR
     # Requisições de busca vindas do IP do Hetzner são bloqueadas pelo YouTube ("Invalid status
     # code for search response: 400" / "sign in to confirm you're not a bot") — problema conhecido
     # e documentado para hosts de datacenter. OAuth (login com uma conta Google, burner, não a

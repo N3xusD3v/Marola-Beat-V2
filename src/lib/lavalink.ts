@@ -28,7 +28,12 @@ export function createLavalinkManager(client: BotClient): LavalinkManager {
     playerOptions: {
       defaultSearchPlatform: 'ytsearch',
       onEmptyQueue: { destroyAfterMs: 60_000 },
-      onDisconnect: { autoReconnect: false, destroyPlayer: true },
+      // Valores oficiais do getting-started do lavalink-client
+      // (https://lc4.gitbook.io/lavalink-client/basics/getting-started): destroyPlayer:true
+      // aborta o player no primeiro VOICE_STATE com channel_id null — comum durante o handshake
+      // de voz — e o bot "entra e sai" sem chegar a tocar. autoReconnect tenta reconectar; só
+      // destrói se a reconexão falhar (PlayerReconnectFail).
+      onDisconnect: { autoReconnect: true, destroyPlayer: false },
     },
   });
 
@@ -55,6 +60,12 @@ export function createLavalinkManager(client: BotClient): LavalinkManager {
 
   manager.on('playerDestroy', (player, reason) => {
     logger.info(`Player destruído na guild ${player.guildId} (${reason ?? 'sem motivo'})`);
+  });
+
+  manager.on('playerReconnect', (player, voiceChannelId) => {
+    logger.info(
+      `Player reconectado na guild ${player.guildId} (canal ${voiceChannelId ?? player.voiceChannelId ?? 'desconhecido'})`,
+    );
   });
 
   manager.nodeManager.on('connect', (node) => {

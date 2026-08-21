@@ -103,18 +103,20 @@ precisar de env vars fake.
   ignorado pelo ESLint/tsconfig de propósito). Se adicionar algo aqui, não assuma tipos do `src/`.
 - `lavalink/application.yml` — config do node Lavalink: fontes de áudio habilitadas
   (`soundcloud`/`bandcamp`/`twitch`/`vimeo` nativos; `youtube` via plugin
-  `dev.lavalink.youtube:youtube-plugin`, já que o Lavalink 4 removeu a fonte nativa do YouTube por
-  causa de bloqueios de assinatura do próprio YouTube). A senha vem de `${LAVALINK_SERVER_PASSWORD}`
+  `dev.lavalink.youtube:youtube-plugin` em snapshot `f45bbb7a` — inclui o fix de UA do client `TV`
+  do [youtube-source#233](https://github.com/lavalink-devs/youtube-source/pull/233); o release
+  `1.18.2` quebrou OAuth playback com "The page needs to be reloaded", ver
+  [youtube-source#226](https://github.com/lavalink-devs/youtube-source/issues/226)). A senha vem de `${LAVALINK_SERVER_PASSWORD}`
   (env var do container, ver `docker-compose.yml`), nunca hardcode aqui. `plugins.youtube.clients`
-  **precisa** incluir `TV` — é o único client desta versão do plugin (`1.18.2`) que de fato usa o
+  **precisa** incluir `TV` — é o único client que de fato usa o
   OAuth configurado em `oauth.enabled`; os demais (`MUSIC`/`ANDROID_VR`/`WEB`/`WEBEMBEDDED`)
   ignoram o token completamente, mesmo com ele configurado e válido. `plugins.youtube.remoteCipher`
   aponta pro servidor público [yt-cipher](https://github.com/kikkia/yt-cipher)
   (`cipher.kikkia.dev`) em vez de depender da extração local de assinatura do player script do
   YouTube, que quebra com frequência quando o YouTube muda o formato
   ([youtube-source#225](https://github.com/lavalink-devs/youtube-source/issues/225)) — ver
-  [DEPLOYMENT.md](DEPLOYMENT.md) pros dois failure modes (`This video requires login` vs
-  `Must find sig function`) e como diferenciá-los nos logs. **Editar este arquivo e dar `git push`
+  [DEPLOYMENT.md](DEPLOYMENT.md) pros failure modes (`This video requires login` vs
+  `Must find sig function` vs `The page needs to be reloaded`) e como diferenciá-los nos logs. **Editar este arquivo e dar `git push`
   não é suficiente em produção** — o Coolify trata esse bind mount como um recurso próprio de
   "Persistent Storage" depois da primeira detecção e para de ler o arquivo do git; o conteúdo novo
   precisa ser colado manualmente em Configuration → Persistent Storage → Files no Coolify antes de

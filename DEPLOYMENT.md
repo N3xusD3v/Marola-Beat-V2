@@ -131,6 +131,17 @@ mesmo com o `remoteCipher` configurado, a instância pública pode estar fora do
 hospedar a sua própria seguindo o README do `yt-cipher` (é um servidor Deno leve, sobe com
 `docker compose up` num serviço à parte).
 
+**Se a reprodução falhar com `The page needs to be reloaded` no client `TV`/`TVHTML5`**
+([youtube-source#226](https://github.com/lavalink-devs/youtube-source/issues/226)): a partir de
+~2026-08-18 o YouTube passou a rejeitar User-Agents da família Cobalt usados pelo client TV do
+`youtube-plugin:1.18.2`. Sem TV funcional, o OAuth deixa de ser usado na reprodução e em IP de
+datacenter tudo cai em "This video requires login". O fix é o
+[PR #233](https://github.com/lavalink-devs/youtube-source/pull/233) (UA PlayStation 4), já
+mergeado em main do plugin — usamos o snapshot `f45bbb7aebfcbc1c553769e04af6cd43afa8b7c3` em
+`lavalink/application.yml` até sair um release `1.18.3+`. **Não desative
+`plugins.youtube.enabled`** como workaround: o bot continua com `defaultSearchPlatform: ytsearch`
+e aí a busca/reprodução quebra de vez.
+
 ## Escalando para múltiplos nós Lavalink (quando o volume exigir)
 
 Hoje só existe um node Lavalink — se ele cair, a reprodução para em **todos** os servidores ao
