@@ -45,10 +45,28 @@ export function createLavalinkManager(client: BotClient): LavalinkManager {
     logger.error(`Erro na faixa "${track?.info.title ?? 'desconhecida'}":`, payload.exception);
     const channel = player.textChannelId ? client.channels.cache.get(player.textChannelId) : undefined;
     if (channel?.isSendable()) {
+      const errorMsg = payload.exception?.message ?? 'Erro desconhecido';
+      let userMessage = '⚠️ Erro na faixa';
+      let description = errorMsg.slice(0, 200);
+
+      if (errorMsg.includes('This video requires login')) {
+        userMessage = '🔒 Vídeo restrito';
+        description = 'Este vídeo requer login. Pode ser conteúdo com restrição de idade ou regional.';
+      } else if (errorMsg.includes('sign in to confirm')) {
+        userMessage = '🚫 Verificação necessária';
+        description = 'O YouTube está solicitando verificação. Tente novamente em alguns minutos.';
+      } else if (errorMsg.includes('Video unavailable')) {
+        userMessage = '❌ Vídeo indisponível';
+        description = 'Este vídeo não está disponível. Pode ter sido removido ou bloqueado.';
+      } else if (errorMsg.includes('not available in your country')) {
+        userMessage = '🌍 Bloqueio regional';
+        description = 'Este conteúdo não está disponível na sua região.';
+      }
+
       const embed = new EmbedBuilder()
         .setColor(ERROR_COLOR)
-        .setTitle('⚠️ Erro na faixa')
-        .setDescription((payload.exception?.message ?? 'Erro desconhecido').slice(0, 200));
+        .setTitle(userMessage)
+        .setDescription(description);
       void channel.send({ embeds: [embed] }).catch(() => {});
     }
   });

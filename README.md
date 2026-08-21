@@ -150,6 +150,7 @@ disclosure — não abra uma issue pública.
 - [Documentação do discord.js](https://discord.js.org/#/docs)
 - [Discord Developer Docs](https://discord.com/developers/docs/intro)
 - [Documentação do Coolify](https://coolify.io/docs)
+- [Uso Correto do YouTube](YOUTUBE_USAGE.md) - Entenda como o bot usa o YouTube de forma ética
 
 ## 📝 Licença
 

@@ -27,7 +27,8 @@ lavalink:
     opusEncodingQuality: 8
     nonAllocatingFrameBuffer: true
     frameBufferDurationMs: 5000
-    youtubePlaylistLoadLimit: 6
+    # Limite de faixas carregadas de playlists (padrão 6) — para uso privado, pode ser maior
+    youtubePlaylistLoadLimit: 20
     playerUpdateInterval: 5
     youtubeSearchEnabled: true
     soundcloudSearchEnabled: true
@@ -41,18 +42,14 @@ plugins:
     allowSearch: true
     allowDirectVideoIds: true
     allowDirectPlaylistIds: true
+    # Para uso pessoal autenticado com OAuth, priorizamos o client TV (único OAuth-compatível nesta
+    # versão 1.18.2). Os demais clients (MUSIC, ANDROID_VR, etc.) ignoram o token OAuth e funcionam
+    # como fallback para conteúdo público que não exige login, mas a ordem importa: o Lavalink tenta
+    # na sequência até conseguir. TV primeiro maximiza o uso do OAuth em conteúdo restrito.
     clients:
-      - MUSIC
-      - ANDROID_VR
-      - WEB
-      - WEBEMBEDDED
-      # Único client desta versão do plugin (1.18.2) que de fato usa OAuth pra tocar
-      # (dev.lavalink.youtube:youtube-plugin — ver github.com/lavalink-devs/youtube-source,
-      # seção "Available clients"): os outros ignoram o token OAuth completamente. Sem ele aqui,
-      # o log mostra "OAuth has been enabled without registering any OAuth-compatible clients" —
-      # o token chega a renovar com sucesso, mas nunca é de fato usado numa tentativa de tocar, e
-      # todos os clients continuam falhando com "This video requires login" (visto em produção).
       - TV
+      - MUSIC
+      - WEB
     # Requisições de busca vindas do IP do Hetzner são bloqueadas pelo YouTube ("Invalid status
     # code for search response: 400" / "sign in to confirm you're not a bot") — problema conhecido
     # e documentado para hosts de datacenter. OAuth (login com uma conta Google, burner, não a

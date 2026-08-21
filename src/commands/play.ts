@@ -5,6 +5,13 @@ import type { BotClient } from '../types/client.js';
 import type { Command } from '../types/command.js';
 import { BRAND_COLOR } from '../lib/embeds.js';
 import { formatDuration } from '../lib/format.js';
+import { RateLimiter } from '../lib/rate-limiter.js';
+
+// Rate limiting mais generoso para uso restrito (você + amigos no mesmo canal)
+// 10 requisições por minuto é mais confortável para uso pessoal
+const playRateLimiter = new RateLimiter(10, 60);
+
+setInterval(() => playRateLimiter.cleanup(), 5 * 60 * 1000);
 
 export const data = new SlashCommandBuilder()
   .setName('play')
@@ -19,6 +26,14 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction: ChatInputCommandInteraction, client: BotClient) {
   const query = interaction.options.getString('query', true);
   const playNext = interaction.options.getBoolean('topo') ?? false;
+
+  if (!playRateLimiter.check(interaction.user.id)) {
+    const waitTime = playRateLimiter.getWaitTime(interaction.user.id);
+    return interaction.reply({
+      content: `⏱️ Calma aí! Aguarde ${waitTime} segundo${waitTime > 1 ? 's' : ''} antes de buscar outra música.`,
+      ephemeral: true,
+    });
+  }
 
   const member = await interaction.guild!.members.fetch(interaction.user.id);
   const voiceChannel = member.voice.channel;
@@ -41,7 +56,16 @@ export async function execute(interaction: ChatInputCommandInteraction, client: 
   // UnresolvedSearchResult half of its return union). Passa o GuildMember (não o User) como
   // requester pra "Pedido por" mostrar o apelido do servidor, não o @username da conta.
   const result = (await player.search({ query }, member)) as SearchResult;
-  if (result.loadType === 'error' || result.loadType === 'empty') {
+  if (result.loadType === 'error') {
+    const errorMsg = result.exception?.message ?? '';
+    if (errorMsg.includes('sign in') || errorMsg.includes('login')) {
+      return interaction.editReply(
+        '🔒 Este conteúdo requer autenticação. Pode ser restrito por idade ou região.',
+      );
+    }
+    return interaction.editReply('❌ Erro ao buscar música. Tente outro termo ou URL.');
+  }
+  if (result.loadType === 'empty') {
     return interaction.editReply('❌ Nenhum resultado encontrado.');
   }
 
