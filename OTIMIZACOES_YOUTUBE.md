@@ -11,12 +11,14 @@ Seu bot agora está **otimizado e preparado para uso pessoal/privado** com YouTu
 **Arquivo**: `lavalink/application.yml`
 
 **Mudanças**:
+
 - ✅ Client **TV** agora é a prioridade #1 (único que usa seu OAuth2)
 - ✅ Removidos clients que ignoram OAuth (ANDROID_VR, WEBEMBEDDED)
 - ✅ Mantidos MUSIC e WEB como fallback para conteúdo público
 - ✅ Limite de playlist aumentado de 6 para 20 faixas
 
 **Por quê?**
+
 - Maximiza o uso do seu OAuth2 pessoal
 - Reduz tentativas desnecessárias em clients sem autenticação
 - Adequado para uso privado (não precisa limitar tanto)
@@ -26,12 +28,14 @@ Seu bot agora está **otimizado e preparado para uso pessoal/privado** com YouTu
 **Arquivos**: `src/lib/rate-limiter.ts`, `src/lib/rate-limiter.test.ts`, `src/commands/play.ts`
 
 **Funcionalidade**:
+
 - 🕐 **10 buscas por minuto** por usuário (generoso para uso restrito)
 - 📊 Janela deslizante (não reinicia do zero a cada minuto)
 - 🧹 Limpeza automática para evitar vazamento de memória
 - 💬 Mensagens amigáveis: "⏱️ Calma aí! Aguarde X segundos..."
 
 **Por quê?**
+
 - Evita que o YouTube detecte padrão não-humano
 - Protege seu OAuth2 de ser bloqueado
 - Simula uso normal de uma pessoa
@@ -45,12 +49,14 @@ Seu bot agora está **otimizado e preparado para uso pessoal/privado** com YouTu
 **Antes**: "⚠️ Erro na faixa: [mensagem técnica crua]"
 
 **Agora**:
+
 - 🔒 **Vídeo restrito** - Requer login ou verificação de idade
 - 🚫 **Verificação necessária** - YouTube pedindo confirmação anti-bot
 - ❌ **Vídeo indisponível** - Foi removido ou bloqueado
 - 🌍 **Bloqueio regional** - Não disponível na sua região
 
 **Por quê?**
+
 - Usuários entendem o que aconteceu sem conhecimento técnico
 - Facilita troubleshooting (você sabe o que fazer em cada caso)
 
@@ -59,6 +65,7 @@ Seu bot agora está **otimizado e preparado para uso pessoal/privado** com YouTu
 **Arquivo**: `YOUTUBE_USAGE.md`
 
 **Conteúdo**:
+
 - ✅ Como o bot usa YouTube (OAuth2, Lavalink, streaming)
 - ✅ O que funciona e o que não funciona
 - ✅ Diferença entre uso pessoal (OK) e público (atenção)
@@ -66,6 +73,7 @@ Seu bot agora está **otimizado e preparado para uso pessoal/privado** com YouTu
 - ✅ Links para Termos de Serviço e documentação oficial
 
 **Por quê?**
+
 - Você tem clareza sobre conformidade legal
 - Sabe exatamente o que pode e não pode fazer
 - Referência rápida para resolver problemas
@@ -129,6 +137,7 @@ Seu bot agora está **otimizado e preparado para uso pessoal/privado** com YouTu
 ## 🔍 Validação
 
 Todos os checks passaram:
+
 - ✅ `npm run typecheck` - Tipos TypeScript OK
 - ✅ `npm test` - 34 testes passando (8 novos do rate limiter)
 - ✅ `npm run lint` - ESLint sem erros

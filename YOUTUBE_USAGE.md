@@ -5,12 +5,14 @@ Este documento explica como o Marola Beat usa o YouTube de forma ética e dentro
 ## Método de Acesso
 
 O bot **não** usa:
+
 - ❌ Scraping direto do YouTube
 - ❌ Download de arquivos de vídeo
 - ❌ Bypass de restrições do YouTube
 - ❌ APIs não autorizadas
 
 O bot **usa**:
+
 - ✅ **Lavalink** - Servidor de áudio separado que gerencia streams
 - ✅ **OAuth2 do YouTube** - Autenticação oficial com conta Google
 - ✅ **Plugin oficial** `youtube-source` mantido pela comunidade Lavalink
@@ -28,6 +30,7 @@ O bot **usa**:
 ### Configuração (já feita no projeto)
 
 A configuração em `lavalink/application.yml` usa:
+
 - Client **TV** (único compatível com OAuth na versão 1.18.2)
 - Token de refresh armazenado em variável de ambiente
 - Remote cipher para evitar bloqueios por mudanças no player do YouTube
@@ -55,12 +58,14 @@ A configuração em `lavalink/application.yml` usa:
 ### Para Uso Pessoal/Privado (seu caso)
 
 ✅ **PERMITIDO**:
+
 - Uso em servidor privado do Discord com amigos
 - Uma conta autenticada pessoal
 - Streaming em tempo real (não download)
 - Respeito aos termos de serviço do YouTube
 
 ⚠️ **ATENÇÃO**:
+
 - Use uma conta Google **burner** (secundária), não a principal
 - Não compartilhe o bot publicamente
 - Não monetize o serviço
@@ -71,6 +76,7 @@ A configuração em `lavalink/application.yml` usa:
 Se você fosse distribuir o bot para centenas de servidores:
 
 ❌ **NÃO PERMITIDO sem autorização explícita**:
+
 - Distribuição em massa (múltiplos servidores desconhecidos)
 - Uso comercial ou monetizado
 - Bypass sistemático de anúncios do YouTube
@@ -79,6 +85,7 @@ Se você fosse distribuir o bot para centenas de servidores:
 ## Rate Limiting
 
 O bot implementa **rate limiting** (10 requisições por minuto por usuário) para:
+
 - ✅ Evitar sobrecarga do YouTube
 - ✅ Reduzir chance de bloqueios
 - ✅ Simular uso humano normal
@@ -100,7 +107,8 @@ Se você quer **máxima conformidade** com os termos do YouTube:
 ### "This video requires login"
 
 **Causa**: Vídeo restrito ou token OAuth expirou
-**Solução**: 
+**Solução**:
+
 1. Refaça o OAuth (veja `DEPLOYMENT.md`)
 2. Verifique se a conta tem verificação de idade
 3. Tente outro vídeo similar
@@ -108,7 +116,8 @@ Se você quer **máxima conformidade** com os termos do YouTube:
 ### "Sign in to confirm you're not a bot"
 
 **Causa**: YouTube detectou padrão não-humano
-**Solução**: 
+**Solução**:
+
 1. Aguarde alguns minutos
 2. Reduza a frequência de buscas
 3. Use URLs diretos em vez de buscas
@@ -135,6 +144,7 @@ Se você quer **máxima conformidade** com os termos do YouTube:
 Para seu uso **pessoal com amigos em um servidor privado**:
 
 ✅ **Você está dentro das regras** se:
+
 - Usa OAuth2 com conta pessoal
 - Não monetiza
 - Não distribui publicamente
@@ -142,6 +152,7 @@ Para seu uso **pessoal com amigos em um servidor privado**:
 - Aceita que alguns conteúdos podem falhar
 
 ⚠️ **Fique atento se**:
+
 - Começar a usar em muitos servidores
 - Receber solicitações de uso público
 - Pensar em monetizar

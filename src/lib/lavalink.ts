@@ -63,7 +63,10 @@ export function createLavalinkManager(client: BotClient): LavalinkManager {
         description = 'Este conteúdo não está disponível na sua região.';
       }
 
-      const embed = new EmbedBuilder().setColor(ERROR_COLOR).setTitle(userMessage).setDescription(description);
+      const embed = new EmbedBuilder()
+        .setColor(ERROR_COLOR)
+        .setTitle(userMessage)
+        .setDescription(description);
       void channel.send({ embeds: [embed] }).catch(() => {});
     }
   });
