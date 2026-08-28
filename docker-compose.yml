@@ -44,6 +44,11 @@ services:
       # Nome exigido pelo relaxed-binding do Spring Boot para plugins.youtube.oauth.refreshToken —
       # esse valor NÃO pode vir de um placeholder `${...}` dentro de application.yml (ver nota lá).
       PLUGINS_YOUTUBE_OAUTH_REFRESHTOKEN: ${YOUTUBE_OAUTH_REFRESH_TOKEN}
+      # Mesmo motivo acima, pro plugin LavaSrc (fallback pro Tidal, mirror via Deezer — ver
+      # plugins.lavasrc em lavalink/application.yml).
+      PLUGINS_LAVASRC_TIDAL_TOKEN: ${TIDAL_TOKEN}
+      PLUGINS_LAVASRC_DEEZER_ARL: ${DEEZER_ARL}
+      PLUGINS_LAVASRC_DEEZER_MASTERDECRYPTIONKEY: ${DEEZER_MASTER_DECRYPTION_KEY}
       # Meta de pausa do G1GC mais curta (padrão é 200ms) — pausas de GC mais curtas e frequentes
       # em vez de mais longas e raras tendem a ser menos perceptíveis em áudio em tempo real.
       _JAVA_OPTIONS: '-XX:MaxGCPauseMillis=100'

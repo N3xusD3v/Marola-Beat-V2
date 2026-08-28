@@ -1,11 +1,12 @@
 import { Router } from 'express';
-import type { SearchResult, Track, UnresolvedTrack } from 'lavalink-client';
+import type { Track, UnresolvedTrack } from 'lavalink-client';
 import type { BotClient } from '../types/client.js';
 import { requesterName } from '../lib/embeds.js';
 import { recordGuildActivity, touchUser } from '../lib/admin-store.js';
 import type { RedisClient } from '../lib/admin-store.js';
 import { formatDuration } from '../lib/format.js';
 import { logger } from '../lib/logger.js';
+import { searchWithFallback } from '../lib/search.js';
 import { booleanField, numberField, stringField } from './body-fields.js';
 import { requireVoiceMember } from './middleware.js';
 
@@ -105,8 +106,8 @@ export function createQueueRouter(client: BotClient, redis: RedisClient) {
         });
         if (!player.connected) await player.connect();
 
-        // useUnresolvedData isn't enabled, so search() always resolves to SearchResult.
-        const result = (await player.search({ query }, requestedBy)) as SearchResult;
+        // searchWithFallback já cai pro Tidal se o SoundCloud não achar nada (ver src/lib/search.ts).
+        const result = await searchWithFallback(player, query, requestedBy);
         if (result.loadType === 'error' || result.loadType === 'empty') {
           res.status(404).json({ error: 'no_results' });
           return;
