@@ -248,6 +248,10 @@ export function createQueueRouter(client: BotClient, redis: RedisClient) {
         return;
       }
       const previous = await player.queue.shiftPrevious();
+      if (!previous) {
+        res.status(409).json({ error: 'no_previous' });
+        return;
+      }
       await player.play({ clientTrack: previous });
       res.status(204).end();
     })();
