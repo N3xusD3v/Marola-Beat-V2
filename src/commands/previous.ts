@@ -15,6 +15,9 @@ export async function execute(interaction: ChatInputCommandInteraction, client: 
   }
 
   const previous = await player.queue.shiftPrevious();
+  if (!previous) {
+    return interaction.reply({ content: '❌ Não há música anterior na fila.', ephemeral: true });
+  }
   await player.play({ clientTrack: previous });
   return interaction.reply(`⏮️ Voltando para **${previous.info.title}**.`);
 }

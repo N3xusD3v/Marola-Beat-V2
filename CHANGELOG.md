@@ -7,6 +7,13 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ### Adicionado
 
+- Fallback pro Tidal (busca, via plugin LavaSrc) quando o SoundCloud não acha a faixa —
+  `searchWithFallback` em `src/lib/search.ts`, usado por `/play` e `POST /api/queue/add`. O Tidal
+  não toca áudio diretamente no Lavalink (só metadado); a reprodução é espelhada pro Deezer.
+  Requer as env vars opcionais `TIDAL_TOKEN`, `DEEZER_ARL` e `DEEZER_MASTER_DECRYPTION_KEY` —
+  `plugins.lavasrc.sources.tidal`/`.deezer` começam desativados em
+  `lavalink/application.yml` até essas três serem cadastradas, ver "Fallback pro Tidal via Deezer"
+  em [DEPLOYMENT.md](DEPLOYMENT.md).
 - Sessão do painel web agora persiste em Redis (`connect-redis`) em vez do `MemoryStore` padrão
   do `express-session` — sobrevive a redeploys e deixa de ser um bloqueador pra rodar mais de uma
   réplica do bot. Novo serviço `redis` no `docker-compose.yml` e nova env var `REDIS_PASSWORD`
@@ -131,6 +138,17 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
   **Configuration → Persistent Storage → Files** no Coolify. Ver [DEPLOYMENT.md](DEPLOYMENT.md)
   pro passo a passo — essa é provavelmente a causa de qualquer mudança "sumida" nesse arquivo no
   futuro.
+- Reprodução do YouTube voltando a falhar em produção mesmo com `TV` na lista de clients e
+  `remoteCipher` configurado (as duas correções acima) — dessa vez com `AllClientsFailedException`
+  em **todos** os clients configurados ao mesmo tempo (`TV`: "The page needs to be reloaded";
+  `WEB`: "No supported audio streams available"), bug aberto sem correção upstream
+  ([lavalink-devs/youtube-source#226](https://github.com/lavalink-devs/youtube-source/issues/226)).
+  Não é problema de credencial — o OAuth renovava o token normalmente. Corrigido desativando
+  `plugins.youtube.enabled`/`youtubeSearchEnabled` em `lavalink/application.yml` e trocando
+  `defaultSearchPlatform` pra `'scsearch'` em `src/lib/lavalink.ts` (sem essa segunda mudança,
+  toda busca sem prefixo/URL lançava `Lavalink Node has not 'youtube' enabled` antes mesmo de
+  chegar no Lavalink, quebrando `/play` e o painel web). Reative os dois junto quando confirmar
+  que uma versão nova do plugin corrigiu a #226.
 - Painel admin não mostrava o apelido/nome de exibição do servidor em Usuários (sempre caía pro
   @username) — a atividade de fila resolvia o apelido só via `guild.members.cache`, que fica quase
   sempre vazio porque o bot não tem o intent `GuildMembers` (ver `src/index.ts`). Corrigido usando
