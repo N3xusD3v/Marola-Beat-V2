@@ -26,7 +26,12 @@ export function createLavalinkManager(client: BotClient): LavalinkManager {
     client: { id: env.discordAppId },
     autoSkip: true,
     playerOptions: {
-      defaultSearchPlatform: 'ytsearch',
+      // YouTube está desativado em lavalink/application.yml (ver o comentário lá pro motivo) —
+      // se o default continuar 'ytsearch', toda busca sem prefixo/URL lança
+      // "Lavalink Node has not 'youtube' enabled" (ManagerUtils.validateSourceString rejeita
+      // antes mesmo de chegar no Lavalink; visto em produção em 28/ago/2026 no painel web e no
+      // /play). Troque de volta pra 'ytsearch' só junto com plugins.youtube.enabled.
+      defaultSearchPlatform: 'scsearch',
       onEmptyQueue: { destroyAfterMs: 60_000 },
       onDisconnect: { autoReconnect: false, destroyPlayer: true },
     },

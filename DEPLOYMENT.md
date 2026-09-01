@@ -53,6 +53,9 @@ Mais simples de manter — o próprio Coolify clona o repositório e builda a im
      quem tem acesso ao painel `/admin`, ver [README.md](README.md#painel-web))
    - `YOUTUBE_OAUTH_REFRESH_TOKEN` — só depois do primeiro deploy, veja a seção
      "Autenticação OAuth do YouTube" abaixo. Pode deixar vazia no cadastro inicial.
+   - `TIDAL_TOKEN`, `DEEZER_ARL`, `DEEZER_MASTER_DECRYPTION_KEY` — opcionais, habilitam o
+     fallback pro Tidal quando o SoundCloud não acha a faixa (veja "Fallback pro Tidal via
+     Deezer" abaixo). Sem elas o bot funciona normalmente, só sem esse fallback.
 5. Em **Domains**, atribua ao serviço `bot`: `https://beat.n3xus.dev:3000` — o `:3000` diz ao
    Coolify para rotear para a porta interna do container; **não** adicione `ports:` no
    `docker-compose.yml` para isso (veja a nota no próprio arquivo).
@@ -131,6 +134,39 @@ mesmo com o `remoteCipher` configurado, a instância pública pode estar fora do
 hospedar a sua própria seguindo o README do `yt-cipher` (é um servidor Deno leve, sobe com
 `docker compose up` num serviço à parte).
 
+## Fallback pro Tidal via Deezer (plugin LavaSrc)
+
+Quando o SoundCloud (fonte padrão desde a desativação do YouTube — veja a seção anterior) não
+acha uma faixa, `searchWithFallback` (`src/lib/search.ts`) tenta o Tidal (prefixo `tdsearch:`,
+plugin `lavasrc-plugin` em `lavalink/application.yml`) antes de desistir. O Tidal não tem fonte
+própria de streaming no Lavalink/Lavaplayer — só resolve metadado —, então a reprodução em si é
+espelhada ("mirroring") pro Deezer via `plugins.lavasrc.providers`.
+
+**Nenhuma das duas credenciais abaixo vem de uma API pública oficial** — são valores extraídos de
+sessão/app, documentados pela própria comunidade do LavaSrc, não pela Tidal/Deezer. Use por sua
+conta e risco (pode violar os termos de uso dos dois serviços); veja as instruções atualizadas no
+[wiki do LavaSrc](https://github.com/topi314/LavaSrc/wiki) antes de configurar:
+
+1. **`TIDAL_TOKEN`**: token de acesso à API do Tidal.
+2. **`DEEZER_ARL`**: cookie de sessão (`arl`) de uma conta Deezer.
+3. **`DEEZER_MASTER_DECRYPTION_KEY`**: chave de decriptação usada pelo LavaSrc pra decodificar o
+   áudio do Deezer — não é a mesma coisa que o `arl`.
+4. Cadastre as três como variáveis de ambiente no Coolify.
+5. **`plugins.lavasrc.sources.tidal` e `.deezer` começam como `false`** em
+   `lavalink/application.yml` de propósito — não há confirmação de que o plugin degrada bem com
+   essas credenciais vazias (pode falhar ao subir e derrubar o Lavalink inteiro, quebrando
+   SoundCloud/Bandcamp/Vimeo/Twitch junto). Só depois de cadastrar as três variáveis: mude os dois
+   pra `true` (no repo **e** colando o conteúdo novo em Persistent Storage → Files, ver
+   "Alterando `lavalink/application.yml`" acima) e redeploy.
+6. Confira os logs do `lavalink` depois do redeploy — deve aparecer algo como
+   `Loaded 'lavasrc-plugin-4.8.3.jar'` sem erro logo em seguida. Se der erro, volte os dois pra
+   `false`, redeploy pra recuperar o resto do bot, e investigue as credenciais antes de tentar de
+   novo.
+
+Se as credenciais expirarem ou forem invalidadas depois de já estar tudo funcionando, o fallback
+simplesmente para de funcionar (o bot volta a responder "❌ Nenhum resultado encontrado." nesses
+casos) — não trava o resto do bot, só essa fonte extra fica indisponível até renovar os valores.
+
 ## Escalando para múltiplos nós Lavalink (quando o volume exigir)
 
 Hoje só existe um node Lavalink — se ele cair, a reprodução para em **todos** os servidores ao
@@ -208,6 +244,10 @@ Rode `npm run register` novamente sempre que adicionar, remover ou alterar um co
       nesse arquivo exigem colar o conteúdo novo em Persistent Storage → Files no Coolify, git push
       sozinho não é suficiente — ver "Alterando `lavalink/application.yml`" acima
 - [ ] Serviço `lavalink` sem porta/domínio exposto no Coolify (só o `bot` recebe domínio)
+- [ ] (Opcional) `TIDAL_TOKEN`, `DEEZER_ARL` e `DEEZER_MASTER_DECRYPTION_KEY` configuradas e
+      `plugins.lavasrc.sources.tidal`/`.deezer` mudados pra `true` (começam `false`) se quiser o
+      fallback pro Tidal — confirme nos logs do Lavalink que subiu sem erro antes de considerar
+      pronto (veja "Fallback pro Tidal via Deezer" acima)
 - [ ] `GUILD_ID` vazio em produção (comandos globais) ou definido para um servidor de staging
 - [ ] Redirect URI `https://beat.n3xus.dev/auth/discord/callback` cadastrado no Developer Portal
 - [ ] Se o bot for chegar perto de 100 servidores: `https://beat.n3xus.dev/privacy` e `/terms`

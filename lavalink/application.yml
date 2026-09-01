@@ -30,15 +30,73 @@ lavalink:
     # Limite de faixas carregadas de playlists (padrão 6) — para uso privado, pode ser maior
     youtubePlaylistLoadLimit: 20
     playerUpdateInterval: 5
-    youtubeSearchEnabled: true
+    # Desativado (28/ago/2026) — ver plugins.youtube.enabled abaixo. Confirmado em produção que
+    # TODOS os clients configurados (TV, MUSIC, WEB) falham ao carregar qualquer faixa com
+    # AllClientsFailedException ("The page needs to be reloaded" / "No supported audio streams
+    # available") — bug upstream aberto sem correção (lavalink-devs/youtube-source#226). Reative
+    # junto com plugins.youtube.enabled e com defaultSearchPlatform em src/lib/lavalink.ts quando
+    # confirmar que uma versão nova do plugin corrigiu a #226.
+    youtubeSearchEnabled: false
     soundcloudSearchEnabled: true
   plugins:
     - dependency: 'dev.lavalink.youtube:youtube-plugin:1.18.2'
       snapshot: false
+    - dependency: 'com.github.topi314.lavasrc:lavasrc-plugin:4.8.3'
+      snapshot: false
 
 plugins:
+  lavasrc:
+    # Fallback pra quando o SoundCloud não acha a faixa (comum em lançamentos recentes de
+    # gravadoras grandes) — ver searchWithFallback em src/lib/search.ts, que só cai aqui
+    # (prefixo "tdsearch:") depois de tentar o SoundCloud primeiro.
+    #
+    # tidal/deezer DESATIVADOS até TIDAL_TOKEN/DEEZER_ARL/DEEZER_MASTER_DECRYPTION_KEY serem
+    # cadastradas no Coolify (ver DEPLOYMENT.md) — não há confirmação de que o plugin degrada bem
+    # com essas credenciais vazias (pode falhar ao subir e derrubar o Lavalink inteiro, o que
+    # quebraria SoundCloud/Bandcamp/Vimeo/Twitch junto). Ative os dois (`true`) só depois de
+    # cadastrar as três env vars, redeploy, e conferir nos logs do Lavalink que subiu sem erro.
+    sources:
+      tidal: false
+      # Deezer usado só como mirror de reprodução do Tidal (ver `providers` abaixo) — o Tidal
+      # não tem fonte própria de streaming no Lavalink/Lavaplayer, só resolve metadados; o Deezer
+      # é quem realmente entrega o áudio. Também funciona como fonte pesquisável direta (prefixo
+      # "dzsearch:"), não só como mirror.
+      deezer: false
+      spotify: false
+      applemusic: false
+      yandexmusic: false
+      flowerytts: false
+      youtube: false
+      vkmusic: false
+      qobuz: false
+      ytdlp: false
+      jiosaavn: false
+    # Ordem de tentativa pra resolver áudio de uma faixa do Tidal (que só tem metadado, não
+    # stream) — por ISRC primeiro (mais preciso), senão por busca de texto. Aponta pro Deezer,
+    # não pro YouTube (desativado nesse node — ver plugins.youtube.enabled abaixo).
+    providers:
+      - 'dzisrc:%ISRC%'
+      - 'dzsearch:%QUERY%'
+    tidal:
+      # Ajuste pro país da conta usada pra gerar o token abaixo — afeta o catálogo disponível.
+      countryCode: 'BR'
+      searchLimit: 6
+      # token vem via env var PLUGINS_LAVASRC_TIDAL_TOKEN (Spring relaxed-binding, mesmo padrão
+      # do OAuth do YouTube acima) — nunca hardcode aqui. Configurada em docker-compose.yml a
+      # partir de TIDAL_TOKEN; cadastre o valor real direto no Coolify (Environment Variables),
+      # nunca no repo. Veja DEPLOYMENT.md pra como obter o token.
+    deezer:
+      formats: ['MP3_256', 'MP3_128', 'MP3_64', 'AAC_64']
+      # arl e masterDecryptionKey vêm via env vars PLUGINS_LAVASRC_DEEZER_ARL e
+      # PLUGINS_LAVASRC_DEEZER_MASTERDECRYPTIONKEY (mesmo motivo do token do Tidal acima) —
+      # nunca hardcode aqui. Configuradas em docker-compose.yml a partir de DEEZER_ARL e
+      # DEEZER_MASTER_DECRYPTION_KEY.
   youtube:
-    enabled: true
+    # Desativado: ver o comentário de youtubeSearchEnabled acima — não é problema de credencial
+    # (OAuth renovava o token com sucesso nos logs), o carregamento da faixa em si que falha pra
+    # todos os clients ao mesmo tempo. Até a #226 ser corrigida, o bot usa SoundCloud/Bandcamp/
+    # Vimeo/Twitch (links diretos ou prefixo "scsearch:"/"ytsearch:" explícito na busca).
+    enabled: false
     allowSearch: true
     allowDirectVideoIds: true
     allowDirectPlaylistIds: true
