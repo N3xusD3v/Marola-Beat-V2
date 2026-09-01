@@ -46,6 +46,14 @@ precisar de env vars fake.
 - `src/lib/format.ts` — `formatDuration(ms)`, já que `track.info.duration` do lavalink-client vem
   em milissegundos (número), não como string formatada; `parseTimeToMs(input)` faz o caminho
   inverso pro `/seek` (aceita segundos crus ou `mm:ss`/`hh:mm:ss`).
+- `src/lib/search.ts` — `searchWithFallback(player, query, requester)`, usado por `/play` e pela
+  rota `POST /api/queue/add` do painel web em vez de chamar `player.search()` direto: tenta a
+  fonte padrão (SoundCloud) e, se vier `empty`/`error` **e** a query não tiver prefixo/URL
+  explícito, tenta de novo com `tdsearch:` (Tidal, via plugin LavaSrc). Tidal não tem fonte
+  própria de streaming no Lavalink — só resolve metadado —, a reprodução é espelhada pro Deezer
+  via `plugins.lavasrc.providers` em `lavalink/application.yml` (ver o comentário lá; requer as
+  env vars `TIDAL_TOKEN`/`DEEZER_ARL`/`DEEZER_MASTER_DECRYPTION_KEY`, opcionais — sem elas o
+  fallback simplesmente não encontra nada e cai no "❌ Nenhum resultado encontrado.").
 - `src/lib/lavalink.ts` — cria e configura o `LavalinkManager` (nodes, listeners de eventos).
   `src/index.ts` conecta o resto da fiação: encaminha o evento legado `raw` do `Client` do
   discord.js pro `sendRawData()` do manager (obrigatório — sem isso o Lavalink nunca recebe
@@ -135,7 +143,9 @@ precisar de env vars fake.
 - `player.search()` do lavalink-client retorna `SearchResult | UnresolvedSearchResult` no tipo,
   mas como `useUnresolvedData` nunca é habilitado no `LavalinkManager` (`src/lib/lavalink.ts`), o
   resultado real em runtime é sempre `SearchResult` — faça `as SearchResult` explícito depois do
-  `await` em vez de tratar o caso `UnresolvedSearchResult` (ver `src/commands/play.ts`).
+  `await` em vez de tratar o caso `UnresolvedSearchResult` (ver `src/lib/search.ts`, o único lugar
+  que ainda chama `player.search()` direto — `/play` e a rota `POST /api/queue/add` usam
+  `searchWithFallback` de lá em vez de chamar `player.search()` diretamente).
 - `player.playing` vira `false` enquanto a faixa está pausada (`player.playing = !paused`
   internamente) — nunca guarde uma rota/comando checando só `player.playing`; use
   `player.queue.current` pra saber se há uma faixa carregada independente do estado de pausa (ver

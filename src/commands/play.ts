@@ -1,11 +1,11 @@
 import { ChannelType, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
-import type { SearchResult } from 'lavalink-client';
 import type { BotClient } from '../types/client.js';
 import type { Command } from '../types/command.js';
 import { BRAND_COLOR } from '../lib/embeds.js';
 import { formatDuration } from '../lib/format.js';
 import { RateLimiter } from '../lib/rate-limiter.js';
+import { searchWithFallback } from '../lib/search.js';
 
 // Rate limiting mais generoso para uso restrito (você + amigos no mesmo canal)
 // 10 requisições por minuto é mais confortável para uso pessoal
@@ -52,10 +52,10 @@ export async function execute(interaction: ChatInputCommandInteraction, client: 
 
   if (!player.connected) await player.connect();
 
-  // useUnresolvedData isn't enabled, so search() always resolves to SearchResult (never the
-  // UnresolvedSearchResult half of its return union). Passa o GuildMember (não o User) como
-  // requester pra "Pedido por" mostrar o apelido do servidor, não o @username da conta.
-  const result = (await player.search({ query }, member)) as SearchResult;
+  // Passa o GuildMember (não o User) como requester pra "Pedido por" mostrar o apelido do
+  // servidor, não o @username da conta. searchWithFallback já cai pro Tidal se o SoundCloud
+  // não achar nada (ver src/lib/search.ts).
+  const result = await searchWithFallback(player, query, member);
   if (result.loadType === 'error') {
     const errorMsg = result.exception?.message ?? '';
     if (errorMsg.includes('sign in') || errorMsg.includes('login')) {
