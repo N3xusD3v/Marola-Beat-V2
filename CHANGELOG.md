@@ -154,6 +154,19 @@ Este projeto segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
   sempre vazio porque o bot não tem o intent `GuildMembers` (ver `src/index.ts`). Corrigido usando
   `guild.members.fetch()` como fallback quando não está em cache, mesmo padrão já usado em
   `POST /api/queue/add` e `GET /api/me`.
+- Bot entrava e saía do canal de voz sem chegar a tocar: `onDisconnect` estava com
+  `destroyPlayer: true` / `autoReconnect: false` em `src/lib/lavalink.ts`, o oposto do recomendado
+  pelo [getting-started oficial do lavalink-client](https://lc4.gitbook.io/lavalink-client/basics/getting-started).
+  Qualquer `VOICE_STATE_UPDATE` com `channel_id` null (comum durante o handshake de conexão)
+  destruía o player na hora. Corrigido com `autoReconnect: true` / `destroyPlayer: false` + log do
+  evento `playerReconnect`.
+- YouTube reativado em `lavalink/application.yml` (`plugins.youtube.enabled`/
+  `youtubeSearchEnabled`) em validação, usando o snapshot `f45bbb7a` do plugin, que inclui o fix
+  de User-Agent do client `TV` ([youtube-source#233](https://github.com/lavalink-devs/youtube-source/pull/233))
+  pro erro `AllClientsFailedException`/"The page needs to be reloaded" documentado no item acima
+  sobre a #226. `defaultSearchPlatform` continua `'scsearch'` até confirmar em produção que o
+  snapshot resolve — ver "YouTube reativado em validação" em [DEPLOYMENT.md](DEPLOYMENT.md) pro
+  runbook de monitoramento/rollback.
 
 ### Removido
 

@@ -26,14 +26,20 @@ export function createLavalinkManager(client: BotClient): LavalinkManager {
     client: { id: env.discordAppId },
     autoSkip: true,
     playerOptions: {
-      // YouTube está desativado em lavalink/application.yml (ver o comentário lá pro motivo) —
-      // se o default continuar 'ytsearch', toda busca sem prefixo/URL lança
-      // "Lavalink Node has not 'youtube' enabled" (ManagerUtils.validateSourceString rejeita
-      // antes mesmo de chegar no Lavalink; visto em produção em 28/ago/2026 no painel web e no
-      // /play). Troque de volta pra 'ytsearch' só junto com plugins.youtube.enabled.
+      // SoundCloud continua o default mesmo com plugins.youtube.enabled reativado em
+      // lavalink/application.yml (ver o comentário lá) — YouTube ainda está em validação (snapshot
+      // com o fix da #226, ver DEPLOYMENT.md), então não faz sentido arriscar o /play e o painel
+      // web de todo mundo nele até confirmar em produção. Busca com prefixo/URL explícito
+      // ("ytsearch:"/link direto) já usa o YouTube normalmente.
       defaultSearchPlatform: 'scsearch',
       onEmptyQueue: { destroyAfterMs: 60_000 },
-      onDisconnect: { autoReconnect: false, destroyPlayer: true },
+      // Valores recomendados pelo getting-started do lavalink-client
+      // (https://lc4.gitbook.io/lavalink-client/basics/getting-started): destroyPlayer: true
+      // destruía o player no primeiro VOICE_STATE_UPDATE com channel_id null — comum durante o
+      // handshake de conexão de voz — fazendo o bot entrar e sair do canal sem chegar a tocar.
+      // autoReconnect tenta reconectar primeiro; só destrói se a reconexão falhar de vez
+      // (evento 'playerDestroy' com reason PlayerReconnectFail).
+      onDisconnect: { autoReconnect: true, destroyPlayer: false },
     },
   });
 
@@ -78,6 +84,10 @@ export function createLavalinkManager(client: BotClient): LavalinkManager {
 
   manager.on('playerDestroy', (player, reason) => {
     logger.info(`Player destruído na guild ${player.guildId} (${reason ?? 'sem motivo'})`);
+  });
+
+  manager.on('playerReconnect', (player, voiceChannelId) => {
+    logger.info(`Player reconectado na guild ${player.guildId} (canal ${voiceChannelId})`);
   });
 
   manager.nodeManager.on('connect', (node) => {
