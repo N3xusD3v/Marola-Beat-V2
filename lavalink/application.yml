@@ -30,17 +30,26 @@ lavalink:
     # Limite de faixas carregadas de playlists (padrão 6) — para uso privado, pode ser maior
     youtubePlaylistLoadLimit: 20
     playerUpdateInterval: 5
-    # Desativado (28/ago/2026) — ver plugins.youtube.enabled abaixo. Confirmado em produção que
-    # TODOS os clients configurados (TV, MUSIC, WEB) falham ao carregar qualquer faixa com
-    # AllClientsFailedException ("The page needs to be reloaded" / "No supported audio streams
-    # available") — bug upstream aberto sem correção (lavalink-devs/youtube-source#226). Reative
-    # junto com plugins.youtube.enabled e com defaultSearchPlatform em src/lib/lavalink.ts quando
-    # confirmar que uma versão nova do plugin corrigiu a #226.
-    youtubeSearchEnabled: false
+    # Reativado em validação (ver plugins.youtube.enabled abaixo) — havia sido desativado em
+    # 28/ago/2026 depois de TODOS os clients configurados (TV, MUSIC, WEB) falharem ao carregar
+    # qualquer faixa com AllClientsFailedException ("The page needs to be reloaded" / "No
+    # supported audio streams available"), bug upstream sem correção na época
+    # (lavalink-devs/youtube-source#226). O snapshot do plugin logo abaixo inclui o fix de UA do
+    # client TV (youtube-source#233, mergeado em 19/ago/2026) que corrige o "The page needs to be
+    # reloaded" especificamente — se voltar a falhar em produção (qualquer client, qualquer
+    # exceção), volte os dois campos abaixo (e `plugins.youtube.enabled`) pra `false` e redeploy;
+    # `defaultSearchPlatform` em src/lib/lavalink.ts continua em 'scsearch' até confirmar que
+    # este snapshot resolve de vez, então reverter aqui não quebra `/play`/painel web.
+    youtubeSearchEnabled: true
     soundcloudSearchEnabled: true
   plugins:
-    - dependency: 'dev.lavalink.youtube:youtube-plugin:1.18.2'
-      snapshot: false
+    # 1.18.2 (release) carrega o fix acima só parcialmente — sem release semver ainda pro fix de
+    # UA do client TV (youtube-source#233), usamos o snapshot do commit f45bbb7a (main do plugin
+    # em 19/ago/2026, inclui #233 + #235). Trocar pra release estável assim que 1.18.3+ sair.
+    # Formato oficial: https://github.com/lavalink-devs/youtube-source#plugin
+    - dependency: 'dev.lavalink.youtube:youtube-plugin:f45bbb7aebfcbc1c553769e04af6cd43afa8b7c3'
+      repository: 'https://maven.lavalink.dev/snapshots'
+      snapshot: true
     - dependency: 'com.github.topi314.lavasrc:lavasrc-plugin:4.8.3'
       snapshot: false
 
@@ -72,8 +81,9 @@ plugins:
       ytdlp: false
       jiosaavn: false
     # Ordem de tentativa pra resolver áudio de uma faixa do Tidal (que só tem metadado, não
-    # stream) — por ISRC primeiro (mais preciso), senão por busca de texto. Aponta pro Deezer,
-    # não pro YouTube (desativado nesse node — ver plugins.youtube.enabled abaixo).
+    # stream) — por ISRC primeiro (mais preciso), senão por busca de texto. Aponta pro Deezer, não
+    # pro YouTube (por isso `sources.youtube: false` acima fica assim independente do
+    # plugins.youtube.enabled logo abaixo — são fontes de mirror diferentes).
     providers:
       - 'dzisrc:%ISRC%'
       - 'dzsearch:%QUERY%'
@@ -92,22 +102,29 @@ plugins:
       # nunca hardcode aqui. Configuradas em docker-compose.yml a partir de DEEZER_ARL e
       # DEEZER_MASTER_DECRYPTION_KEY.
   youtube:
-    # Desativado: ver o comentário de youtubeSearchEnabled acima — não é problema de credencial
-    # (OAuth renovava o token com sucesso nos logs), o carregamento da faixa em si que falha pra
-    # todos os clients ao mesmo tempo. Até a #226 ser corrigida, o bot usa SoundCloud/Bandcamp/
-    # Vimeo/Twitch (links diretos ou prefixo "scsearch:"/"ytsearch:" explícito na busca).
-    enabled: false
+    # Reativado em validação junto com o snapshot acima (ver o comentário de youtubeSearchEnabled)
+    # — não era problema de credencial (OAuth renovava o token com sucesso nos logs), o
+    # carregamento da faixa em si que falhava pra todos os clients ao mesmo tempo. Monitore os
+    # logs do lavalink depois do deploy: se AllClientsFailedException voltar (qualquer client),
+    # volte `enabled` pra `false` (junto com `youtubeSearchEnabled` acima) e redeploy — o bot
+    # continua funcionando normalmente com SoundCloud como default.
+    enabled: true
     allowSearch: true
     allowDirectVideoIds: true
     allowDirectPlaylistIds: true
-    # Para uso pessoal autenticado com OAuth, priorizamos o client TV (único OAuth-compatível nesta
-    # versão 1.18.2). Os demais clients (MUSIC, ANDROID_VR, etc.) ignoram o token OAuth e funcionam
-    # como fallback para conteúdo público que não exige login, mas a ordem importa: o Lavalink tenta
-    # na sequência até conseguir. TV primeiro maximiza o uso do OAuth em conteúdo restrito.
+    # Para uso pessoal autenticado com OAuth, priorizamos o client TV — é o único client desta
+    # versão do plugin que de fato usa o OAuth configurado em oauth.enabled. Os demais
+    # (MUSIC/WEB/WEBEMBEDDED/ANDROID_VR) ignoram o token completamente, mesmo com ele configurado
+    # e válido, e funcionam só como fallback para conteúdo público que não exige login — a ordem
+    # importa, o Lavalink tenta na sequência até conseguir. TV primeiro maximiza o uso do OAuth em
+    # conteúdo restrito; MUSIC/WEBEMBEDDED/ANDROID_VR entram como fallback extra de conteúdo
+    # público caso o TV falhe num vídeo específico.
     clients:
       - TV
       - MUSIC
       - WEB
+      - WEBEMBEDDED
+      - ANDROID_VR
     # Requisições de busca vindas do IP do Hetzner são bloqueadas pelo YouTube ("Invalid status
     # code for search response: 400" / "sign in to confirm you're not a bot") — problema conhecido
     # e documentado para hosts de datacenter. OAuth (login com uma conta Google, burner, não a

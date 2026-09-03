@@ -134,6 +134,37 @@ mesmo com o `remoteCipher` configurado, a instância pública pode estar fora do
 hospedar a sua própria seguindo o README do `yt-cipher` (é um servidor Deno leve, sobe com
 `docker compose up` num serviço à parte).
 
+## YouTube reativado em validação (`AllClientsFailedException` / #226)
+
+**Contexto**: em 28/ago/2026 o YouTube foi desativado (`plugins.youtube.enabled: false`) depois de
+confirmar em produção que **todos** os clients configurados (`TV`, `MUSIC`, `WEB`) falhavam ao
+carregar qualquer faixa com `AllClientsFailedException` (`TV`: "The page needs to be reloaded";
+`WEB`: "No supported audio streams available") — não era problema de credencial, o OAuth renovava
+o token normalmente. Bug rastreado em
+[lavalink-devs/youtube-source#226](https://github.com/lavalink-devs/youtube-source/issues/226).
+
+O YouTube foi **reativado em validação**: `lavalink/application.yml` agora usa o snapshot do
+commit `f45bbb7aebfcbc1c553769e04af6cd43afa8b7c3` do plugin (main do `youtube-source` em
+19/ago/2026), que inclui o [PR #233](https://github.com/lavalink-devs/youtube-source/pull/233) —
+troca o User-Agent do client `TV` pra um de PlayStation 4, já que o YouTube passou a rejeitar
+User-Agents da família Cobalt usados antes (confirmado por relatos na própria issue #226; ainda
+sem release semver com o fix, `1.18.2` continua sem ele). `defaultSearchPlatform` em
+`src/lib/lavalink.ts` **continua `'scsearch'`** de propósito — o snapshot ainda não foi validado
+em produção, então o `/play` e o painel web de todo mundo continuam no SoundCloud por padrão;
+YouTube só entra via prefixo `ytsearch:` explícito ou link direto.
+
+**Depois do deploy** (lembre de colar o `application.yml` novo em Persistent Storage → Files, ver
+"Alterando `lavalink/application.yml`" acima):
+
+1. Teste `ytsearch:` com várias faixas, não só `dQw4w9WgXcQ` — segundo relatos na issue #226, esse
+   vídeo específico passa mesmo em configurações quebradas e mascara o problema.
+2. Confira os logs do `lavalink`: deve aparecer o snapshot do plugin carregado sem erro, e as
+   faixas tocando sem `AllClientsFailedException`.
+3. **Se voltar a falhar** (qualquer client, qualquer exceção parecida): volte
+   `plugins.youtube.enabled` e `lavalink.server.youtubeSearchEnabled` pra `false` em
+   `lavalink/application.yml`, cole no Coolify de novo e redeploy — o bot volta a funcionar
+   normalmente com SoundCloud/Tidal como estão hoje, sem precisar reverter mais nada.
+
 ## Fallback pro Tidal via Deezer (plugin LavaSrc)
 
 Quando o SoundCloud (fonte padrão desde a desativação do YouTube — veja a seção anterior) não
